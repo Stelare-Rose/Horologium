@@ -1,0 +1,9 @@
+[package]
+name = "horologium-lib"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+constellation-eridanus = { git = "https://git.starrytea.cc/Constellation-Project/Eridanus.git", rev = "20608d7225" }
+chrono = "0.4.45"
+anyhow = "1.0.103"

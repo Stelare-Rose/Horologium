@@ -54,13 +54,22 @@ impl TryFrom<Eri> for Event {
                     .unwrap_or_default();
                 let project: Option<ProjectId> = value.content.get("project")
                     .and_then(|v| v.as_id_ref().map(|i| ProjectId(i.to_string())));
-                return Ok(Event::Active { id: EventId(id.to_string()), name: name.to_string(), start, tags, project, body: value.body });
+                Ok(Event::Active { id: EventId(id.to_string()), name: name.to_string(), start, tags, project, body: value.body })
             },
             "inactive" => {
-                todo!()
+                let id = value.content.get("id")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| anyhow!("Missing id Value"))?;
+                let name = value.content.get("name")
+                    .and_then(|v| Some(v.as_str()))
+                    .unwrap_or_default();
+                let start_str = value.content.get("start")
+                    .and_then(|v| v.as_date_str())
+                    .ok_or_else(|| anyhow!("Missing start Time"))?;
+                let start: DateTime<Utc> = DateTime::parse_from_rfc3339(start_str)?.with_timezone(&Utc);
+                Ok(Event::Inactive { id: EventId(id.to_string()), name: name.map(|n| n.to_string()), start, body: value.body })
             },
-            _ => anyhow!("Invalid Event Type!")
-        };
-        todo!()
+            _ => Err(anyhow!("Invalid Event Type!"))
+        }
     }
 }

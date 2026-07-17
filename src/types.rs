@@ -1,12 +1,12 @@
-use std::vec;
+use std::collections::HashMap;
 
 use anyhow::anyhow;
 use chrono::{DateTime, Utc};
-use constellation_eridanus::Eri;
+use constellation_eridanus::{Eri, Value};
 
 pub struct EventId(String);
-pub struct TagId(String);
-pub struct ProjectId(String);
+pub struct TagId(String, String);   // (id, name)
+pub struct ProjectId(String, String); // (id, name)
 pub enum Event {
     Active {
         id: EventId,
@@ -47,13 +47,13 @@ impl TryFrom<Eri> for Event {
                     .and_then(|v| v.as_array())
                     .map(|m| {
                         m.iter()
-                        .filter_map(|i| i.as_id_ref())
-                        .map(|j| TagId(j.to_string()))
+                        .filter_map(|i| i.as_id_tuple())
+                        .map(|j| TagId(j.0.to_string(), j.1.to_string()))
                         .collect()
                     })
                     .unwrap_or_default();
                 let project: Option<ProjectId> = value.content.get("project")
-                    .and_then(|v| v.as_id_ref().map(|i| ProjectId(i.to_string())));
+                    .and_then(|v| v.as_id_tuple().map(|i| ProjectId(i.0.to_string(), i.1.to_string())));
                 Ok(Event::Active { id: EventId(id.to_string()), name: name.to_string(), start, tags, project, body: value.body })
             },
             "inactive" => {
@@ -71,5 +71,42 @@ impl TryFrom<Eri> for Event {
             },
             _ => Err(anyhow!("Invalid Event Type!"))
         }
+    }
+}
+
+impl From<Event> for Eri {
+    fn from(value: Event) -> Self {
+        const SCHEMA: &str = "horologium:event";
+        const VERSION: &str = "v1.0.0";
+        let mut content: HashMap<String, Value> = HashMap::new();
+        
+        let (id, start, body, event_type) = match &value {
+            Event::Active { id, start, body, .. } => (id.0.clone(), *start, body.clone(), "active"),
+            Event::Inactive { id, start, body, .. } => (id.0.clone(), *start, body.clone(), "inactive"),
+        };
+
+        content.insert("type".to_string(), Value::Str(event_type.to_string()));
+        content.insert("id".to_string(), Value::Str(id));
+        content.insert("start".to_string(), Value::DateTime(start.to_rfc3339()));
+        match value {
+            Event::Active { name, tags, project, .. } => {
+                content.insert("name".to_string(), Value::Str(name));
+                if !tags.is_empty() {
+                    content.insert("tags".to_string(), Value::Array(
+                        tags.into_iter().map(|t| Value::Id(t.0, t.1)).collect()
+                    ));
+                }
+                if let Some(p) = project {
+                    content.insert("project".to_string(), Value::Id(p.0, p.1));
+                }
+            }
+            Event::Inactive { name, .. } => {
+                if let Some(n) = name {
+                    content.insert("name".to_string(), Value::Str(n));
+                }
+            }
+        }
+
+        Eri { schema: SCHEMA.to_string(), version: VERSION.to_string(), content, body }
     }
 }

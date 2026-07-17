@@ -61,8 +61,7 @@ impl TryFrom<Eri> for Event {
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| anyhow!("Missing id Value"))?;
                 let name = value.content.get("name")
-                    .map(|v| v.as_str())
-                    .flatten();
+                    .and_then(|v| v.as_str());
                 let start_str = value.content.get("start")
                     .and_then(|v| v.as_date_str())
                     .ok_or_else(|| anyhow!("Missing start Time"))?;

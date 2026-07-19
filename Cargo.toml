@@ -7,6 +7,7 @@ edition = "2024"
 constellation-eridanus = { git = "https://git.starrytea.cc/Constellation-Project/Eridanus.git", rev = "20608d7225" }
 chrono = "0.4.45"
 anyhow = "1.0.103"
+sanitize-filename = "0.6.0"
 
 [dependencies.uuid]
 version = "1.24.0"

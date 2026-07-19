@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf};
 
 use chrono::{DateTime, Utc};
 use constellation_eridanus::{Eri, serialize};
+use sanitize_filename::sanitize;
 use uuid::Uuid;
 
 use crate::{types::{Event, EventId, ProjectId, TagId}, utils::{event_path, uuidv7_from_datetime}};
@@ -36,12 +37,13 @@ pub fn start(
     let path = event_path(base_path, s);
     fs::create_dir_all(&path)?;
 
-    let clock_path = &path.join(format!("{device_id}-clock.txt"));
+    let clock_path = path.join(format!("{device_id}-clock.txt"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
 
-    let file_path = &path.join(format!("{name}-{id}.eri"));
+    let sanitized = sanitize(name);
+    let file_path = path.join(format!("{sanitized}-{id}.eri"));
     fs::write(file_path, serialized)?;
     
 

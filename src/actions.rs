@@ -13,7 +13,7 @@ impl Horologium {
     pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
         start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
     }
-    pub fn stop(&self, name: Option<String>, body: Option<String> start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
+    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
         stop(&self.base_path, &self.device_id, name, body, start_time)
     }
 }

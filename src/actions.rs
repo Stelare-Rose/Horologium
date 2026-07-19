@@ -1,0 +1,49 @@
+use std::{fs, path::PathBuf};
+
+use chrono::{DateTime, Utc};
+use constellation_eridanus::{Eri, serialize};
+use uuid::Uuid;
+
+use crate::{types::{Event, EventId, ProjectId, TagId}, utils::{event_path, uuidv7_from_datetime}};
+
+// Convenience Implementation for svc and convenience when possible to use preconfigured client
+pub struct Horologium { base_path: PathBuf, device_id: String }
+impl Horologium {
+    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
+        start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
+    }
+}
+
+pub fn start(
+    base_path: &PathBuf,
+    device_id: &str,
+    name: String,
+    tags: Vec<TagId>, 
+    project: Option<ProjectId>,
+    body: Option<String>, 
+    start_time: Option<DateTime<Utc>>
+) -> anyhow::Result<EventId> {
+    let s = start_time.unwrap_or_else(Utc::now);
+    let id = uuidv7_from_datetime(s).to_string();
+
+    let e = Event::Active { id: EventId(id.clone()), name: name.clone(), start: s, tags, project, body };
+
+    let eri: Eri = e.into();
+    // TODO: Change Eri to use actual error types
+    let serialized: String = serialize(&eri).map_err(|e: String| anyhow::anyhow!(e))?;
+
+    // File Write
+    let path = event_path(base_path, s);
+    fs::create_dir_all(&path)?;
+
+    let clock_path = &path.join(format!("{device_id}-clock.txt"));
+    let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
+
+    fs::write(clock_path, (current + 1).to_string())?;
+
+    let file_path = &path.join(format!("{name}-{id}.eri"));
+    fs::write(file_path, serialized)?;
+    
+
+    Ok(EventId(id))
+}

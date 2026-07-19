@@ -4,9 +4,10 @@ use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use constellation_eridanus::{Eri, Value};
 
-pub struct EventId(String);
-pub struct TagId(String, String);   // (id, name)
-pub struct ProjectId(String, String); // (id, name)
+// Do not @ me about bad encapsulation. fix it yourself
+pub struct EventId(pub String);
+pub struct TagId { pub id: String, pub name: String }
+pub struct ProjectId { pub id: String, pub name: String }
 pub enum Event {
     Active {
         id: EventId,
@@ -48,12 +49,12 @@ impl TryFrom<Eri> for Event {
                     .map(|m| {
                         m.iter()
                         .filter_map(|i| i.as_id_tuple())
-                        .map(|j| TagId(j.0.to_string(), j.1.to_string()))
+                        .map(|j| TagId{id: j.0.to_string(), name: j.1.to_string()})
                         .collect()
                     })
                     .unwrap_or_default();
                 let project: Option<ProjectId> = value.content.get("project")
-                    .and_then(|v| v.as_id_tuple().map(|i| ProjectId(i.0.to_string(), i.1.to_string())));
+                    .and_then(|v| v.as_id_tuple().map(|i| ProjectId{id: i.0.to_string(), name: i.1.to_string()}));
                 Ok(Event::Active { id: EventId(id.to_string()), name: name.to_string(), start, tags, project, body: value.body })
             },
             "inactive" => {
@@ -92,11 +93,11 @@ impl From<Event> for Eri {
                 content.insert("name".to_string(), Value::Str(name));
                 if !tags.is_empty() {
                     content.insert("tags".to_string(), Value::Array(
-                        tags.into_iter().map(|t| Value::Id(t.0, t.1)).collect()
+                        tags.into_iter().map(|t| Value::Id(t.id, t.name)).collect()
                     ));
                 }
                 if let Some(p) = project {
-                    content.insert("project".to_string(), Value::Id(p.0, p.1));
+                    content.insert("project".to_string(), Value::Id(p.id, p.name));
                 }
             }
             Event::Inactive { name, .. } => {

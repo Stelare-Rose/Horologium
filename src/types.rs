@@ -25,6 +25,25 @@ pub enum Event {
     }
 }
 
+pub struct Color(String);
+pub struct Tag {
+    id: String,
+    name: String,
+    color: Vec<Color>,
+}
+pub enum ProjectState {
+    Active,
+    Done {
+        completed_date: DateTime<Utc>
+    }
+}
+pub struct Project {
+    id: String,
+    name: String,
+    state: ProjectState,
+    color: Vec<Color>,
+    body: Option<String>
+}
 
 impl TryFrom<Eri> for Event {
     type Error = anyhow::Error;

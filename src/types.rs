@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 
 mod event;
 mod tags;
+mod project;
 
 // Do not @ me about bad encapsulation. fix it yourself
 pub struct EventId(pub String);

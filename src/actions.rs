@@ -111,11 +111,12 @@ pub fn define_tag(
 
     fs::write(clock_path, (current + 1).to_string())?;
 
-    let sanitized = sanitize(name);
+    let sanitized = sanitize(&name);
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
     fs::write(file_path, serialized)?;
-    todo!()
+
+    Ok(TagId { id, name })
 }
 
 pub fn define_project(

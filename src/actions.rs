@@ -41,13 +41,14 @@ pub fn start(
     let path = event_path(base_path, s);
     fs::create_dir_all(&path)?;
 
-    let clock_path = path.join(format!("{device_id}-clock.txt"));
+    let sanitized_device = sanitize(device_id);
+    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
 
     let sanitized = sanitize(name);
-    let file_path = path.join(format!("{sanitized}-{id}.eri"));
+    let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
     fs::write(file_path, serialized)?;
     
 
@@ -73,13 +74,14 @@ pub fn stop (
     let path = event_path(base_path, s);
     fs::create_dir_all(&path)?;
 
-    let clock_path = path.join(format!("{device_id}-clock.txt"));
+    let sanitized_device = sanitize(device_id);
+    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
 
     let sanitized = sanitize(name.unwrap_or("untracked".to_string()));
-    let file_path = path.join(format!("{sanitized}-{id}.eri"));
+    let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
     fs::write(file_path, serialized)?;
 
@@ -103,13 +105,14 @@ pub fn define_tag(
     let path = base_path.join("Tags");
     fs::create_dir_all(&path)?;
 
-    let clock_path = path.join(format!("{device_id}-clock.txt"));
+    let sanitized_device = sanitize(device_id);
+    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
 
     let sanitized = sanitize(name);
-    let file_path = path.join(format!("{sanitized}-{id}.eri"));
+    let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
     fs::write(file_path, serialized)?;
     todo!()

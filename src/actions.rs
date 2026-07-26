@@ -17,6 +17,12 @@ impl Horologium {
     pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
         stop(&self.base_path, &self.device_id, name, body, start_time)
     }
+    pub fn define_tag(&self, name: String, color: Vec<Color>) -> anyhow::Result<TagId> {
+        define_tag(&self.base_path, &self.device_id, name, color)
+    }
+    pub fn define_project(&self, name: String, color: Vec<Color>, body: Option<String>) -> anyhow::Result<ProjectId> {
+        define_project(&self.base_path, &self.device_id, name, color, body)
+    }
 }
 
 pub fn start(

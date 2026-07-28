@@ -8,18 +8,23 @@ use super::*;
 impl TryFrom<Eri> for Project {
     type Error = anyhow::Error;
     fn try_from(value: Eri) -> Result<Self, Self::Error> {
-        let state = value.content.get("state")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow!("Missing state"))?;
+        let state_object = value.content.get("project-state")
+            .and_then(|v| v.as_object())
+            .ok_or_else(|| anyhow!("Missing state object"))?;
 
+        let state = state_object.get("enum")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow!("Missing state enum"))?;
 
         let proj_state = match state {
             "active" => {
                 ProjectState::Active
             },
             "done" => {
-                let completed_string = value.content.get("completed-date").and_then(|v| v.as_date_str()).ok_or_else(|| anyhow!("Missing completed Date for Completed Project"))?;
-                let completed_date: DateTime<Utc> = DateTime::parse_from_rfc3339(completed_string)?.with_timezone(&Utc);
+                let completed_string = state_object.get("completed-date")
+                    .and_then(|v| v.as_date_str())
+                    .ok_or_else(|| anyhow!("Missing completed Date for Completed Project"))?;
+                let completed_date: NaiveDate = NaiveDate::parse_from_str(completed_string, "%Y-%m-%d")?;
                 ProjectState::Done { completed_date: completed_date }
             }
             _ => {
@@ -56,12 +61,17 @@ impl From<Project> for Eri {
 
         match value.state {
             ProjectState::Active => {
-                content.insert("state".to_string(), Value::Str("active".to_string()));
+                let mut state_object: HashMap<String, Value> = HashMap::new();
+                
+                state_object.insert("enum".to_string(), Value::Str("active".to_string()));
+                content.insert("project-state".to_string(), Value::Object(state_object));
             }
 
             ProjectState::Done { completed_date } => {
-                content.insert("state".to_string(), Value::Str("done".to_string()));
-                content.insert("completed-date".to_string(), Value::Date(DateTime::to_rfc3339(&completed_date)));
+                let mut state_object: HashMap<String, Value> = HashMap::new();
+                state_object.insert("enum".to_string(), Value::Str("done".to_string()));
+                state_object.insert("completed-date".to_string(), Value::Date(completed_date.format("%Y-%m-%d").to_string()));
+                content.insert("project-state".to_string(), Value::Object(state_object));
             }
         }
 

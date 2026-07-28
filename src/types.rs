@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 
 mod event;
 mod tags;
@@ -34,7 +34,7 @@ pub struct Tag {
 pub enum ProjectState {
     Active,
     Done {
-        completed_date: DateTime<Utc>
+        completed_date: NaiveDate 
     }
 }
 pub struct Project {

@@ -6,15 +6,15 @@ use sanitize_filename::sanitize;
 use anyhow::anyhow;
 use nanoid::nanoid;
 
-use crate::{types::{Color, Event, EventId, Project, ProjectId, ProjectState, Tag, TagId}, utils::{event_path, uuidv7_from_datetime}};
+use crate::{types::{Color, Event, Project, ProjectId, ProjectState, Record, RecordId, Tag, TagId}, utils::{event_path, uuidv7_from_datetime}};
 
 // Convenience Implementation for svc and convenience when possible to use preconfigured client
 pub struct Horologium { base_path: PathBuf, device_id: String }
 impl Horologium {
-    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
+    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
         start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
     }
-    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<EventId> {
+    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
         stop(&self.base_path, &self.device_id, name, body, start_time)
     }
     pub fn define_tag(&self, name: String, color: Vec<Color>) -> anyhow::Result<TagId> {
@@ -33,13 +33,14 @@ pub fn start(
     project: Option<ProjectId>,
     body: Option<String>, 
     start_time: Option<DateTime<Utc>>
-) -> anyhow::Result<EventId> {
+) -> anyhow::Result<RecordId> {
     let s = start_time.unwrap_or_else(Utc::now);
     let id = uuidv7_from_datetime(s).to_string();
 
-    let e = Event::Active { id: EventId(id.clone()), name: name.clone(), start: s, tags, project, body };
+    let e = Event::Active { name: name.clone(),tags, project };
+    let r = Record { id: RecordId(id.clone()), start: s, event: e, body };
 
-    let eri: Eri = e.into();
+    let eri: Eri = r.into();
     // TODO: Change Eri to use actual error types
     let serialized: String = serialize(&eri).map_err(|e: String| anyhow!(e))?;
 
@@ -58,7 +59,7 @@ pub fn start(
     fs::write(file_path, serialized)?;
     
 
-    Ok(EventId(id))
+    Ok(RecordId(id))
 }
 
 pub fn stop (
@@ -67,13 +68,14 @@ pub fn stop (
     name: Option<String>,
     body: Option<String>,
     start_time: Option<DateTime<Utc>>,
-) -> anyhow::Result<EventId> { 
+) -> anyhow::Result<RecordId> { 
     let s = start_time.unwrap_or_else(Utc::now);
     let id = uuidv7_from_datetime(s).to_string();
 
-    let e = Event::Inactive { id: EventId(id.clone()), name: name.clone(), start: s, body };
+    let e = Event::Inactive { name: name.clone() };
+    let r = Record { id: RecordId(id.clone()), start: s, event: e, body };
 
-    let eri: Eri = e.into();
+    let eri: Eri = r.into();
     let serialized: String = serialize(&eri).map_err(|e: String| anyhow!(e))?;
 
     // File Write
@@ -91,7 +93,7 @@ pub fn stop (
 
     fs::write(file_path, serialized)?;
 
-    Ok(EventId(id))
+    Ok(RecordId(id))
 }
 
 pub fn define_tag(

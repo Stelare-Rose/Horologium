@@ -38,3 +38,12 @@ pub fn define_project(
 
     Ok(ProjectId { id, name })
 }
+
+pub fn modify_project(
+    base_path: &PathBuf,
+    device_id: &str,
+    from: &PathBuf,
+    project: Project
+) -> anyhow::Result<ProjectId> {
+    todo!()
+}

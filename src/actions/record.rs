@@ -97,7 +97,6 @@ pub fn modify_record (
     let sanitized_device = sanitize(device_id);
     let id = record.id.0.clone();
 
-    // Check if we need to rewrite a file
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
     let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
@@ -107,6 +106,7 @@ pub fn modify_record (
     let e: Eri = record.into();
     let serialized: String = serialize(&e).map_err(|e: String| anyhow!(e))?;
 
+    // Check if we need to rewrite a file
     if file_path == *from {
         // we don't
         fs::write(file_path, serialized)?;

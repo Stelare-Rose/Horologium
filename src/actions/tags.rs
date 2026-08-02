@@ -37,4 +37,11 @@ pub fn define_tag(
     Ok(TagId { id, name })
 }
 
-
+pub fn modify_tags(
+    base_path: &PathBuf,
+    device_id: &str,
+    from: &PathBuf,
+    tags: Tag,
+) -> anyhow::Result<TagId> {
+    todo!()
+}

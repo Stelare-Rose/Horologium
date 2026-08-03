@@ -85,6 +85,8 @@ pub fn modify_record (
     record: Record
 ) -> anyhow::Result<RecordId> {
     let path = event_path(base_path, &record.start);
+    fs::create_dir_all(&path)?;
+
     let sanitized = match record.event {
         Event::Active { ref name, .. } => {
             sanitize(&name)

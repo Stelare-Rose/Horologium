@@ -44,6 +44,8 @@ pub fn modify_tags(
     tags: Tag,
 ) -> anyhow::Result<TagId> {
     let path = base_path.join("Tags");
+    fs::create_dir_all(&path)?;
+
     let sanitized = sanitize(&tags.name);
 
     let sanitized_device = sanitize(device_id);

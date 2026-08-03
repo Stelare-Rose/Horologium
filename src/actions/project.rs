@@ -46,6 +46,8 @@ pub fn modify_project(
     project: Project
 ) -> anyhow::Result<ProjectId> {
     let path = base_path.join("Projects");
+    fs::create_dir_all(&path)?;
+
     let sanitized = sanitize(&project.name);
 
     let sanitized_device = sanitize(device_id);

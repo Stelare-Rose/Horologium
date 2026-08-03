@@ -11,7 +11,8 @@ pub fn uuidv7_from_datetime(dt: DateTime<Utc>) -> Uuid {
 }
 
 pub fn event_path(base: &Path, start: &DateTime<Utc>) -> PathBuf {
-    base.join(start.format("%Y").to_string())
+    base.join("Records")
+        .join(start.format("%Y").to_string())
         .join(start.format("%m").to_string())
         .join(start.format("%d").to_string())
 }

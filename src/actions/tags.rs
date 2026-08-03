@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs::{self}, path::PathBuf};
 
 use constellation_eridanus::{Eri, serialize};
 use sanitize_filename::sanitize;
@@ -43,5 +43,27 @@ pub fn modify_tags(
     from: &PathBuf,
     tags: Tag,
 ) -> anyhow::Result<TagId> {
-    todo!()
+    let path = base_path.join("Tags");
+    let sanitized = sanitize(&tags.name);
+
+    let sanitized_device = sanitize(device_id);
+    let id = tags.id.clone();
+    let name = tags.name.clone();
+
+    let e: Eri = tags.into();
+    let serialized = serialize(&e).map_err(|e: String| anyhow!(e))?;
+
+    let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
+    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
+
+    fs::write(clock_path, (current + 1).to_string())?;
+
+    fs::write(&file_path, serialized)?;
+
+    if file_path != *from {
+        fs::remove_file(from)?;
+    };
+
+    Ok(TagId { id, name })
 }

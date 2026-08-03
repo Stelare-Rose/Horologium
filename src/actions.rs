@@ -33,6 +33,9 @@ impl Horologium {
     pub fn modify_project(&self, from: &PathBuf, project: Project) -> anyhow::Result<ProjectId> {
         project::modify_project(&self.base_path, &self.device_id, from, project)
     }
+    pub fn complete_project(&self, target: &PathBuf) -> anyhow::Result<ProjectId> {
+        project::complete_project(&self.base_path, &self.device_id, target)
+    }
 }
 
 

@@ -71,3 +71,14 @@ pub fn modify_project(
 
     Ok(ProjectId { id, name })
 }
+
+pub fn complete_project(
+    base_path: &PathBuf,
+    device_id: &str,
+    target: &PathBuf
+) -> anyhow::Result<ProjectId> {
+
+    // Probably we should store the path to the file in the sqlite db and have a consumer query it.
+    // This part should just read the file, then rewrite it with the new projectstate
+    todo!()
+}

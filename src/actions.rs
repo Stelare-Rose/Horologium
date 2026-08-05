@@ -9,9 +9,9 @@ pub mod project;
 pub mod tags;
 
 // Convenience Implementation for svc and convenience when possible to use preconfigured client
-pub struct Horologium { base_path: PathBuf, device_id: String }
+pub struct Actions { base_path: PathBuf, device_id: String }
 
-impl Horologium {
+impl Actions {
     pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
         record::start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
     }

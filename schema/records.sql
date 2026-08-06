@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS Records (
 	path TEXT,
 	fingerprint INTEGER
 );
+CREATE INDEX idx_records_start ON Records(start);

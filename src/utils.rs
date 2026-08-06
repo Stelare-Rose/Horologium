@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use uuid::{NoContext, Timestamp, Uuid};
 
 pub fn uuidv7_from_datetime(dt: DateTime<Utc>) -> Uuid {
@@ -10,7 +10,7 @@ pub fn uuidv7_from_datetime(dt: DateTime<Utc>) -> Uuid {
     Uuid::new_v7(ts)
 }
 
-pub fn event_path(base: &Path, start: &DateTime<Utc>) -> PathBuf {
+pub fn event_path(base: &Path, start: &NaiveDate) -> PathBuf {
     base.join("Records")
         .join(start.format("%Y").to_string())
         .join(start.format("%m").to_string())

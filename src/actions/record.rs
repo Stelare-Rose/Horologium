@@ -27,7 +27,7 @@ pub fn start(
     let serialized: String = serialize(&eri).map_err(|e: String| anyhow!(e))?;
 
     // File Write
-    let path = event_path(base_path, &s);
+    let path = event_path(base_path, &s.date_naive());
     fs::create_dir_all(&path)?;
 
     let sanitized_device = sanitize(device_id);
@@ -61,7 +61,7 @@ pub fn stop (
     let serialized: String = serialize(&eri).map_err(|e: String| anyhow!(e))?;
 
     // File Write
-    let path = event_path(base_path, &s);
+    let path = event_path(base_path, &s.date_naive());
     fs::create_dir_all(&path)?;
 
     let sanitized_device = sanitize(device_id);
@@ -84,7 +84,7 @@ pub fn modify_record (
     from: &PathBuf,
     record: Record
 ) -> anyhow::Result<RecordId> {
-    let path = event_path(base_path, &record.start);
+    let path = event_path(base_path, &record.start.date_naive());
     fs::create_dir_all(&path)?;
 
     let sanitized = match record.event {

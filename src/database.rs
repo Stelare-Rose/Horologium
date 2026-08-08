@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::{collections::HashMap, path::{Path, PathBuf}};
 
 use rusqlite::Connection;
 
@@ -12,8 +12,11 @@ impl Database {
         init_schema(&conn)?;
         Ok(Database { base_path, conn })
     }
+    pub fn get_fingerprints(&self, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
+        get_fingerprints(&self.conn, path)
+    }
 }
-pub fn init_schema(conn: &Connection) -> anyhow::Result<()>{
+fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     const CREATE_RECORDS: &str = include_str!("../schema/records.sql");
     const CREATE_PROJECTS: &str = include_str!("../schema/projects.sql");
     const CREATE_TAGS: &str = include_str!("../schema/tags.sql");
@@ -25,4 +28,8 @@ pub fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     conn.execute(CREATE_CLOCKS, [])?;
 
     Ok(())
+}
+
+fn get_fingerprints(conn: &Connection, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
+    todo!()
 }

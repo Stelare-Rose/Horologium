@@ -44,4 +44,11 @@ pub struct Project {
     pub color: Vec<Color>,
     pub body: Option<String>
 }
-
+#[derive(Hash)]
+pub struct Fingerprint {
+    pub size: u64,
+    pub mtime: i64,
+    pub mtime_nsec: i64,
+    pub ctime: i64,
+    pub ctime_nsec: i64,
+}

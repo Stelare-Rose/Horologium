@@ -43,7 +43,7 @@ impl TryFrom<Eri> for Record {
                 Event::Active { name: name.to_string(), tags, project }
             },
             "inactive" => {
-                let name = value.content.get("name")
+                let name = event_object.get("name")
                     .and_then(|v| v.as_str());
                 Event::Inactive { name: name.map(|n| n.to_string()) }
             },

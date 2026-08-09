@@ -2,6 +2,8 @@ use std::{collections::HashMap, path::{Path, PathBuf}};
 
 use rusqlite::Connection;
 
+use crate::{actions::record, types::Record};
+
 pub struct Database {
     base_path: PathBuf,
     conn: Connection
@@ -14,6 +16,12 @@ impl Database {
     }
     pub fn get_fingerprints(&self, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
         get_fingerprints(&self.conn, path)
+    }
+    pub fn upsert_record(&self, record: Record, fp: u64) -> anyhow::Result<()> {
+        upsert_record(&self.conn, record, fp)
+    }
+    pub fn remove_record(&self, path: &PathBuf) -> anyhow::Result<()> {
+        remove_record(&self.conn, path)
     }
 }
 fn init_schema(conn: &Connection) -> anyhow::Result<()>{
@@ -31,5 +39,13 @@ fn init_schema(conn: &Connection) -> anyhow::Result<()>{
 }
 
 fn get_fingerprints(conn: &Connection, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
+    todo!()
+}
+
+fn upsert_record(conn: &Connection, record: Record, fp: u64) -> anyhow::Result<()> {
+    todo!()
+}
+
+fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
     todo!()
 }

@@ -1,8 +1,9 @@
 use std::{collections::HashMap, fs, path::{PathBuf}};
 
+use anyhow::anyhow;
 use chrono::NaiveDate;
 
-use crate::{compile::utils::{FileActions, compare_fingerprints}, database::Database, utils::{event_path, fingerprint}};
+use crate::{compile::utils::{FileActions, compare_fingerprints}, database::Database, types::Record, utils::{event_path, fingerprint}};
 
 pub mod utils;
 
@@ -27,21 +28,25 @@ pub fn compile_record(
     }
     let cache_fingerprints: HashMap<PathBuf, u64> = database.get_fingerprints(&path.canonicalize()?)?;
     let actions = compare_fingerprints(fingerprints, cache_fingerprints);
-    process_records(actions)?;
-
-    // Compare all fingerprints from sqlite and the directory, dropping entries where fingerprints are identical
-
-
-    // Read and reindex items that aren't identical
-    // Remove all remaining entries, remembering to stitch together the enries that were in between
-
-    // It's like removing an item from a linked list.
-    
+    process_records(actions, database)?;
     Ok(())
 }
 
 fn process_records(
-    actions: Vec<FileActions>
+    actions: Vec<FileActions>,
+    database: &Database
 ) -> anyhow::Result<()> {
-    todo!()
+    for item in actions {
+        match item {
+            FileActions::Upsert { path, fingerprint } => {
+                let raw = fs::read_to_string(path)?;
+                let record: Record = constellation_eridanus::parse(&raw).map_err(|s: String| anyhow!(s))?.try_into()?;
+                database.upsert_record(record, fingerprint)?;
+            },
+            FileActions::Delete { path } => {
+                database.remove_record(&path)?;
+            },
+        }
+    };
+    Ok(())
 }

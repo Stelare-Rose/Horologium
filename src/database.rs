@@ -2,7 +2,7 @@ use std::{collections::HashMap, path::{Path, PathBuf}};
 
 use rusqlite::Connection;
 
-use crate::{actions::record, types::Record};
+use crate::{types::Record};
 
 pub struct Database {
     base_path: PathBuf,

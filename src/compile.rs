@@ -10,8 +10,11 @@ mod records;
 pub struct Compile { pub base_path: PathBuf, pub database: Database }
 
 impl Compile {
-    fn compile_record(&self, day: &NaiveDate) -> anyhow::Result<()> {
-        records::compile_record(&self.base_path, &self.database, day)
+    fn compile_all_records(&self) -> anyhow::Result<()> {
+        records::compile_all_records(&self.base_path, &self.database)
+    }
+    fn compile_day_records(&self, day: &NaiveDate) -> anyhow::Result<()> {
+        records::compile_day_records(&self.base_path, &self.database, day)
     }
 }
 

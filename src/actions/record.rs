@@ -31,7 +31,7 @@ pub fn start(
     fs::create_dir_all(&path)?;
 
     let sanitized_device = sanitize(device_id);
-    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let clock_path = path.join(format!("{sanitized_device}.clock"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
@@ -65,7 +65,7 @@ pub fn stop (
     fs::create_dir_all(&path)?;
 
     let sanitized_device = sanitize(device_id);
-    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let clock_path = path.join(format!("{sanitized_device}.clock"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
@@ -101,7 +101,7 @@ pub fn modify_record (
 
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
-    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let clock_path = path.join(format!("{sanitized_device}.clock"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
     fs::write(clock_path, (current + 1).to_string())?;
     
@@ -118,7 +118,7 @@ pub fn modify_record (
         // update the old clock first (in case parents aren't the same)
         if file_path.parent() != from.parent() {
             let old_path = from.parent().ok_or_else(|| anyhow!("Path has no parent?"))?.to_path_buf();
-            let clock_path = old_path.join(format!("{sanitized_device}-clock.txt"));
+            let clock_path = old_path.join(format!("{sanitized_device}.clock"));
             let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
             fs::write(clock_path, (current + 1).to_string())?;
         }

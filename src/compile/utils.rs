@@ -1,4 +1,6 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, fs, path::PathBuf};
+
+use anyhow::anyhow;
 
 pub enum FileAction {
     Upsert {
@@ -36,3 +38,33 @@ pub fn compare_fingerprints(
     actions
 }
 
+pub fn check_clock(
+    path: &PathBuf,
+    cached_clock: u64
+) -> anyhow::Result<bool> {
+    if !path.is_dir() {
+        return Err(anyhow!("Path is not a directory"));
+    }
+    let clocks = find_clock_files(path)?;
+    let mut sum: u64 = 0;
+    for c in clocks {
+        let i: u64 = fs::read_to_string(&c).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
+        sum += i;
+    }
+    Ok(sum == cached_clock)
+}
+
+fn find_clock_files(path: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {
+    let mut clock_files = Vec::new();
+
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        let file_path = entry.path();
+
+        if file_path.extension().and_then(|e| e.to_str()) == Some("clock") {
+            clock_files.push(file_path);
+        }
+    }
+
+    Ok(clock_files)
+}

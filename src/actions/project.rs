@@ -27,7 +27,7 @@ pub fn define_project(
     fs::create_dir_all(&path)?;
 
     let sanitized_device = sanitize(device_id);
-    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let clock_path = path.join(format!("{sanitized_device}.clock"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
@@ -59,7 +59,7 @@ pub fn modify_project(
     let serialized = serialize(&e).map_err(|e: String| anyhow!(e))?;
 
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
-    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let clock_path = path.join(format!("{sanitized_device}.clock"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
 
     fs::write(clock_path, (current + 1).to_string())?;
@@ -95,7 +95,7 @@ pub fn complete_project(
     let serialized = serialize(&e).map_err(|e: String| anyhow!(e))?;
 
     let sanitized_device = sanitize(device_id);
-    let clock_path = path.join(format!("{sanitized_device}-clock.txt"));
+    let clock_path = path.join(format!("{sanitized_device}.clock"));
     let current: u64 = fs::read_to_string(&clock_path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
     fs::write(clock_path, (current + 1).to_string())?;
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));

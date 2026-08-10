@@ -6,20 +6,17 @@ use rusqlite::Connection;
 use crate::{types::Record};
 
 pub struct Database {
-    base_path: PathBuf,
     conn: Connection
 }
 impl Database {
-    pub fn new(base_path: PathBuf, db_path: &Path) -> anyhow::Result<Self> {
-        let canonical_path = base_path.canonicalize()
-            .context("Database Init | Could not canonicalize path")?;
+    pub fn new(db_path: &Path) -> anyhow::Result<Self> {
         if let Some(parent) = db_path.parent() {
             fs::create_dir_all(parent)?;
         }
         let conn = Connection::open(db_path)
             .context("Database Init | Could not open database")?;
         init_schema(&conn)?;
-        Ok(Database { base_path: canonical_path, conn })
+        Ok(Database { conn })
     }
     pub fn get_fingerprints(&self, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
         get_fingerprints(&self.conn, path)

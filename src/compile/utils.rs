@@ -9,6 +9,13 @@ pub enum FileAction {
     },
     Delete {
         path: PathBuf
+    },
+    ClockUpsert {
+        path: PathBuf,
+        clock: u64
+    },
+    ClockDelete {
+        path: PathBuf,
     }
 }
 
@@ -38,10 +45,9 @@ pub fn compare_fingerprints(
     actions
 }
 
-pub fn check_clock(
-    path: &PathBuf,
-    cached_clock: u64
-) -> anyhow::Result<bool> {
+pub fn count_clocks(
+    path: &PathBuf
+) -> anyhow::Result<u64> { 
     if !path.is_dir() {
         return Err(anyhow!("Path is not a directory"));
     }
@@ -51,7 +57,7 @@ pub fn check_clock(
         let i: u64 = fs::read_to_string(&c).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
         sum += i;
     }
-    Ok(sum == cached_clock)
+    Ok(sum)
 }
 
 fn find_clock_files(path: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {

@@ -23,6 +23,12 @@ impl Database {
     pub fn remove_record(&self, path: &PathBuf) -> anyhow::Result<()> {
         remove_record(&self.conn, path)
     }
+    pub fn get_record_clock(&self, path: &PathBuf) -> anyhow::Result<u64> {
+        get_record_clock(&self.conn, path)
+    }
+    pub fn get_all_record_clocks(&self) -> anyhow::Result<HashMap<PathBuf, u64>> {
+        get_all_record_clocks(&self.conn)
+    }
 }
 fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     const CREATE_RECORDS: &str = include_str!("../schema/records.sql");
@@ -47,5 +53,13 @@ fn upsert_record(conn: &Connection, record: Record, fp: u64) -> anyhow::Result<(
 }
 
 fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
+    todo!()
+}
+
+fn get_record_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<u64> {
+    todo!()
+}
+
+fn get_all_record_clocks(conn: &Connection) -> anyhow::Result<HashMap<PathBuf, u64>> {
     todo!()
 }

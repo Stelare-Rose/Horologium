@@ -3,23 +3,13 @@ use std::{collections::HashMap, fs, path::{PathBuf}};
 use anyhow::anyhow;
 use chrono::NaiveDate;
 
-use crate::{compile::utils::{FileAction, compare_fingerprints}, database::Database, types::Record, utils::{event_path, fingerprint}};
-
-enum ResolvedAction {
-    Upsert {
-        record: Record,
-        fingerprint: u64
-    },
-    Delete {
-        path: PathBuf
-    }
-}
+use crate::{compile::utils::{FileAction, compare_fingerprints, count_clocks}, database::Database, types::Record, utils::{event_path, fingerprint}};
 
 pub fn compile_all_records(
     base_path: &PathBuf,
     database: &Database,
 ) -> anyhow::Result<()> {
-    // TODO: Clock Checks
+    let mut clocks = database.get_all_record_clocks()?;
     let mut all_actions: Vec<FileAction> = Vec::new();
 
     for year_entry in fs::read_dir(base_path)? {
@@ -33,11 +23,37 @@ pub fn compile_all_records(
             for day_entry in fs::read_dir(&month_path)? {
                 let day_path = day_entry?.path();
                 if !day_path.is_dir() { continue; }
-
-                let mut actions = compile_records(database, &day_path)?;
-                all_actions.append(&mut actions);
+                
+                let canonic_path = day_path.canonicalize()?;
+                let clock_sum = count_clocks(&canonic_path)?;
+                let is_clock_same = match clocks.remove(&canonic_path) {
+                    Some(i) => { clock_sum == i }
+                    None => { false }
+                };
+                
+                if !is_clock_same {
+                    // We only add the actions if the clock is not the same
+                    let mut actions = compile_records(database, &day_path)?;
+                    all_actions.append(&mut actions);
+                    // Update clock in database
+                    all_actions.push(
+                        FileAction::ClockUpsert { 
+                            path: canonic_path, 
+                            clock: clock_sum
+                        }
+                    );
+                }
             }
         }
+    }
+
+    // Any remaining clocks are from directories that don't exist, clean up db
+    for c in clocks.into_keys() {
+        all_actions.push(
+            FileAction::ClockDelete { 
+                path: c 
+            }
+        );
     }
 
     process_records(all_actions, database)?;
@@ -49,11 +65,26 @@ pub fn compile_day_records(
     database: &Database,
     day: &NaiveDate
 ) -> anyhow::Result<()> {
-    // TODO: Clock Checks
     let path = event_path(base_path, day);
-    let actions = compile_records(database, &path)?;
-    process_records(actions, database)?;
-    Ok(())
+    let mut actions: Vec<FileAction> = Vec::new();
+
+     if !path.is_dir() {
+        // directory doesn't exist, clean up its clock and corresponding directory
+        actions.append(&mut compile_records(database, &path)?);
+        actions.push(FileAction::ClockDelete { path: path.clone() });
+        process_records(actions, database)?;
+        Ok(())
+    } else {
+        let cached_clock = database.get_record_clock(&path)?;
+        let clock = count_clocks(&path)?;
+
+        if clock != cached_clock {
+            actions.append(&mut compile_records(database, &path)?);
+            actions.push(FileAction::ClockUpsert { path: path, clock });
+            process_records(actions, database)?;
+        }
+        Ok(())
+    }
 }
 
 fn compile_records(
@@ -61,13 +92,16 @@ fn compile_records(
     path: &PathBuf,
 ) -> anyhow::Result<Vec<FileAction>> {
     let mut fingerprints: HashMap<PathBuf, u64> = HashMap::new();
-    for entry in fs::read_dir(&path)? {
-        let entry = entry?;
-        let path = entry.path();
-        let fp = fingerprint(&path)?;
-        fingerprints.insert(path.canonicalize()?, fp);
+    // If not directory, fall through and let all fingerprints go to delete
+    if path.is_dir() {
+        for entry in fs::read_dir(&path)? {
+            let entry = entry?;
+            let path = entry.path();
+            let fp = fingerprint(&path)?;
+            fingerprints.insert(path, fp);
+        }
     }
-    let cache_fingerprints: HashMap<PathBuf, u64> = database.get_fingerprints(&path.canonicalize()?)?;
+    let cache_fingerprints: HashMap<PathBuf, u64> = database.get_fingerprints(&path)?;
     let actions = compare_fingerprints(fingerprints, cache_fingerprints);
     Ok(actions)
 }
@@ -87,6 +121,12 @@ fn process_records(
             FileAction::Delete { path } => {
                 database.remove_record(&path)?;
             },
+            FileAction::ClockUpsert { path, clock } => {
+                todo!()
+            },
+            FileAction::ClockDelete { path } => {
+                todo!()
+            }
         }
     };
     Ok(())

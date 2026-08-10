@@ -24,9 +24,8 @@ pub fn compile_all_records(
                 let day_path = day_entry?.path();
                 if !day_path.is_dir() { continue; }
                 
-                let canonic_path = day_path.canonicalize()?;
-                let clock_sum = count_clocks(&canonic_path)?;
-                let is_clock_same = match clocks.remove(&canonic_path) {
+                let clock_sum = count_clocks(&day_path)?;
+                let is_clock_same = match clocks.remove(&day_path) {
                     Some(i) => { clock_sum == i }
                     None => { false }
                 };
@@ -38,7 +37,7 @@ pub fn compile_all_records(
                     // Update clock in database
                     all_actions.push(
                         FileAction::ClockUpsert { 
-                            path: canonic_path, 
+                            path: day_path, 
                             clock: clock_sum
                         }
                     );

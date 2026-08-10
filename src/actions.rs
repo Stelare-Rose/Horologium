@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Context;
 use chrono::{DateTime, Utc};
 
 use crate::types::{Color, Project, ProjectId, Record, RecordId, Tag, TagId};
@@ -12,6 +13,11 @@ pub mod tags;
 pub struct Actions { base_path: PathBuf, device_id: String }
 
 impl Actions {
+    pub fn new (base_path: PathBuf, device_id: String) -> anyhow::Result<Self> {
+        let canonical_path = base_path.canonicalize()
+            .context("Actions Init | Could not canonicalize path")?;
+        Ok(Actions { base_path: canonical_path, device_id })
+    }
     pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
         record::start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
     }

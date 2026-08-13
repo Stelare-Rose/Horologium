@@ -1,6 +1,7 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use rusqlite::Connection;
+use anyhow::Context;
+use rusqlite::{Connection, params, OptionalExtension};
 
 use super::Database;
 
@@ -19,18 +20,54 @@ impl Database {
     }
 }
 
+const GET_CLOCK: &str = include_str!("../../queries/clocks/get.sql");
+
 fn get_record_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<u64> {
-    todo!()
+    let row: Option<i64> = conn
+        .query_row(GET_CLOCK, params![path.to_str()], |row| {
+            row.get::<_, i64>(0)
+        })
+        .optional()
+        .context("Database Clock Get | Failed to fetch clock")?;
+
+    match row {
+        None => Ok(0),
+        Some(sum) => Ok(sum as u64),
+    }
 }
 
 fn get_all_record_clocks(conn: &Connection) -> anyhow::Result<HashMap<PathBuf, u64>> {
-    todo!()
+    const GET_ALL: &str = include_str!("../../queries/clocks/get-all.sql");
+
+    let mut stmt = conn.prepare(GET_ALL)?;
+    let rows = stmt.query_map([], |row| {
+        let path: String = row.get(0)?;
+        let sum: i64 = row.get(1)?;
+        Ok((PathBuf::from(path), sum))
+    })?;
+
+    let mut clocks = HashMap::new();
+    for row in rows {
+        let (path, sum) = row?;
+        clocks.insert(path, sum as u64);
+    }
+    Ok(clocks)
 }
 
 pub fn upsert_clock(conn: &Connection, path: &PathBuf, sum: u64) -> anyhow::Result<()> {
-    todo!()
+    const UPSERT: &str = include_str!("../../queries/clocks/upsert.sql");
+
+    conn.execute(UPSERT, params![path.to_str(), sum as i64])
+        .context("Database Clock Upsert | Failed to upsert clock")?;
+
+    Ok(())
 }
 
 pub fn delete_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
-    todo!()
+    const DELETE: &str = include_str!("../../queries/clocks/delete.sql");
+
+    conn.execute(DELETE, params![path.to_str()])
+        .context("Database Clock Delete | Failed to delete clock")?;
+
+    Ok(())
 }

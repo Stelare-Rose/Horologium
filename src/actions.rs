@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{fs::create_dir_all, path::PathBuf};
 
 use anyhow::Context;
 use chrono::{DateTime, Utc};
@@ -14,6 +14,7 @@ pub struct Actions { base_path: PathBuf, device_id: String }
 
 impl Actions {
     pub fn new (base_path: PathBuf, device_id: String) -> anyhow::Result<Self> {
+        create_dir_all(&base_path)?;
         let canonical_path = base_path.canonicalize()
             .context("Actions Init | Could not canonicalize path")?;
         Ok(Actions { base_path: canonical_path, device_id })

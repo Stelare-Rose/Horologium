@@ -12,7 +12,12 @@ pub fn compile_all_records(
     let mut clocks = database.get_all_record_clocks()?;
     let mut all_actions: Vec<FileAction> = Vec::new();
 
-    for year_entry in fs::read_dir(base_path)? {
+    let records_root = base_path.join("Records");
+    if !records_root.is_dir() {
+        return Ok(());
+    }
+
+    for year_entry in fs::read_dir(&records_root)? {
         let year_path = year_entry?.path();
         if !year_path.is_dir() { continue; }
 
@@ -96,11 +101,14 @@ fn compile_records(
         for entry in fs::read_dir(&path)? {
             let entry = entry?;
             let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) != Some("eri") {
+                continue;
+            }
             let fp = fingerprint(&path)?;
             fingerprints.insert(path, fp);
         }
     }
-    let cache_fingerprints: HashMap<PathBuf, u64> = database.get_fingerprints(&path)?;
+    let cache_fingerprints: HashMap<PathBuf, u64> = database.get_record_fingerprints(&path)?;
     let actions = compare_fingerprints(fingerprints, cache_fingerprints);
     Ok(actions)
 }
@@ -113,9 +121,9 @@ fn process_records(
     for item in actions {
         match item {
             FileAction::Upsert { path, fingerprint } => {
-                let raw = fs::read_to_string(path)?;
+                let raw = fs::read_to_string(&path)?;
                 let record: Record = constellation_eridanus::parse(&raw).map_err(|s: String| anyhow!(s))?.try_into()?;
-                upsert_record(&tx, record, fingerprint)?;
+                upsert_record(&tx, record, &path, fingerprint)?;
             },
             FileAction::Delete { path } => {
                 remove_record(&tx, &path)?;

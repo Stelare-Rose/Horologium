@@ -23,7 +23,7 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
     const INSERT_RECORD_TAG: &str = include_str!("../../queries/records/insert-tags.sql");
 
     let record_id = record.id.0;
-    let start_epoch = record.start.timestamp();
+    let start_epoch = record.start.timestamp_millis();
 
     match record.event {
         Event::Active { name, tags, project } => {
@@ -60,19 +60,27 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
     };
 
     // Update adjacent records
-    conn.execute(UPDATE_PREV, params![start_epoch]).with_context(|| format!("Database Record Upsert | Failed Previous update of Record {:?}", record_id))?;
+    conn.execute(UPDATE_PREV, params![start_epoch, record_id]).with_context(|| format!("Database Record Upsert | Failed Previous update of Record {:?}", record_id))?;
     conn.execute(UPDATE_NEXT, params![start_epoch, record_id]).with_context(|| format!("Database Record Upsert | Failed Next update of Record {:?}", record_id))?;
     Ok(())
 }
 
 pub fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
-    const GET_START: &str = include_str!("../../queries/records/get-start.sql");
+    const GET_START_AND_ID: &str = include_str!("../../queries/records/get-start-and-id.sql");
     const DELETE_STITCH: &str = include_str!("../../queries/records/delete-stitch.sql");
     const DELETE_RECORD: &str = include_str!("../../queries/records/delete.sql");
 
-    let start: i64 = conn.query_row(GET_START, params![path.to_str()], |row| row.get(0))?;
+    let (id, start): (String, i64) = conn.query_row(
+        GET_START_AND_ID,
+        params![path.to_str()],
+        |row| {
+            let id: String = row.get(0)?;
+            let start: i64 = row.get(1)?;
+            Ok((id, start))
+        },
+    )?;
 
-    conn.execute(DELETE_STITCH, params![start])?;
+    conn.execute(DELETE_STITCH, params![start, id])?;
     conn.execute(DELETE_RECORD, params![path.to_str()])?;
     Ok(())
 }

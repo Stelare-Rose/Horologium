@@ -1,3 +1,8 @@
 UPDATE Records
 SET end = ?1
-WHERE id = (SELECT id FROM Records WHERE start < ?1 ORDER BY start DESC LIMIT 1);
+WHERE id = (
+    SELECT id FROM Records
+    WHERE (start < ?1) OR (start = ?1 AND id < ?2)
+    ORDER BY start DESC, id DESC
+    LIMIT 1
+);

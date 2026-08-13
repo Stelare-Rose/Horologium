@@ -36,13 +36,14 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
                 project_id, 
                 path.to_str(), 
                 fp as i64
-            ]).context(format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
+            ]).with_context(|| format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
+            let mut stmt = conn.prepare(INSERT_RECORD_TAG)?;
             for (i, tag) in tags.iter().enumerate() {
-                conn.execute(INSERT_RECORD_TAG, params![
+                stmt.execute(params![
                     tag.id,
                     record_id,
                     i as i64
-                ]).context(format!("Database Record Upsert | Failed Tag Upsert of Record {:?}, with tag {:?}", name, tag.name))?;
+                ]).with_context(|| format!("Database Record Upsert | Failed Tag Upsert of Record {:?}, with tag {:?}", name, tag.name))?;
             }
         }
         Event::Inactive { name } => {
@@ -54,13 +55,13 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
                 Null,
                 path.to_str(),
                 fp as i64
-            ]).context(format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
+            ]).with_context(|| format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
         }
     };
 
     // Update adjacent records
-    conn.execute(UPDATE_PREV, params![start_epoch]).context(format!("Database Record Upsert | Failed Previous update of Record {:?}", record_id))?;
-    conn.execute(UPDATE_NEXT, params![start_epoch, record_id]).context(format!("Database Record Upsert | Failed Next update of Record {:?}", record_id))?;
+    conn.execute(UPDATE_PREV, params![start_epoch]).with_context(|| format!("Database Record Upsert | Failed Previous update of Record {:?}", record_id))?;
+    conn.execute(UPDATE_NEXT, params![start_epoch, record_id]).with_context(|| format!("Database Record Upsert | Failed Next update of Record {:?}", record_id))?;
     Ok(())
 }
 

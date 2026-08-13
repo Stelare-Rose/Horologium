@@ -1,9 +1,14 @@
-use std::{collections::HashMap, fs, path::{Path, PathBuf}};
+use std::{fs, path::Path};
 
-use anyhow::{Context, anyhow};
+use anyhow::Context;
 use rusqlite::{Connection, Transaction};
 
-use crate::{types::Record};
+mod records;
+mod clocks;
+mod fingerprints;
+
+pub use records::{upsert_record, remove_record};
+pub use clocks::{upsert_clock, delete_clock};
 
 pub struct Database {
     conn: Connection
@@ -21,27 +26,6 @@ impl Database {
     pub fn new_transaction(&mut self) -> anyhow::Result<Transaction<'_>> {
         Ok(self.conn.transaction()?)
     }
-    pub fn get_fingerprints(&self, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
-        get_fingerprints(&self.conn, path)
-    }
-    pub fn upsert_record(&self, record: Record, fp: u64) -> anyhow::Result<()> {
-        upsert_record(&self.conn, record, fp)
-    }
-    pub fn remove_record(&self, path: &PathBuf) -> anyhow::Result<()> {
-        remove_record(&self.conn, path)
-    }
-    pub fn get_record_clock(&self, path: &PathBuf) -> anyhow::Result<u64> {
-        get_record_clock(&self.conn, path)
-    }
-    pub fn get_all_record_clocks(&self) -> anyhow::Result<HashMap<PathBuf, u64>> {
-        get_all_record_clocks(&self.conn)
-    }
-    pub fn upsert_clock(&self, path: &PathBuf, sum: u64) -> anyhow::Result<()> {
-        upsert_clock(&self.conn, path, sum)
-    }
-    pub fn delete_clock(&self, path: &PathBuf) -> anyhow::Result<()> {
-        delete_clock(&self.conn, path)
-    }
 }
 fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     const CREATE_RECORDS: &str = include_str!("../schema/records.sql");
@@ -49,38 +33,10 @@ fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     const CREATE_TAGS: &str = include_str!("../schema/tags.sql");
     const CREATE_CLOCKS: &str = include_str!("../schema/clocks.sql");
 
-    conn.execute(CREATE_RECORDS, [])?;
-    conn.execute(CREATE_PROJECTS, [])?;
-    conn.execute(CREATE_TAGS, [])?;
-    conn.execute(CREATE_CLOCKS, [])?;
+    conn.execute_batch(CREATE_RECORDS)?;
+    conn.execute_batch(CREATE_PROJECTS)?;
+    conn.execute_batch(CREATE_TAGS)?;
+    conn.execute_batch(CREATE_CLOCKS)?;
 
     Ok(())
-}
-
-fn get_fingerprints(conn: &Connection, path: &PathBuf) -> anyhow::Result<HashMap<PathBuf, u64>> {
-    todo!()
-}
-
-pub fn upsert_record(conn: &Connection, record: Record, fp: u64) -> anyhow::Result<()> {
-    todo!()
-}
-
-pub fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
-    todo!()
-}
-
-fn get_record_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<u64> {
-    todo!()
-}
-
-fn get_all_record_clocks(conn: &Connection) -> anyhow::Result<HashMap<PathBuf, u64>> {
-    todo!()
-}
-
-pub fn upsert_clock(conn: &Connection, path: &PathBuf, sum: u64) -> anyhow::Result<()> {
-    todo!()
-}
-
-pub fn delete_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
-    todo!()
 }

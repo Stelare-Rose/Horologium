@@ -3,11 +3,11 @@ use std::{collections::HashMap, fs, path::{PathBuf}};
 use anyhow::anyhow;
 use chrono::NaiveDate;
 
-use crate::{compile::utils::{FileAction, compare_fingerprints, count_clocks}, database::Database, types::Record, utils::{event_path, fingerprint}};
+use crate::{compile::utils::{FileAction, compare_fingerprints, count_clocks}, database::{Database, delete_clock, remove_record, upsert_clock, upsert_record}, types::Record, utils::{event_path, fingerprint}};
 
 pub fn compile_all_records(
     base_path: &PathBuf,
-    database: &Database,
+    database: &mut Database,
 ) -> anyhow::Result<()> {
     let mut clocks = database.get_all_record_clocks()?;
     let mut all_actions: Vec<FileAction> = Vec::new();
@@ -61,7 +61,7 @@ pub fn compile_all_records(
 
 pub fn compile_day_records(
     base_path: &PathBuf,
-    database: &Database,
+    database: &mut Database,
     day: &NaiveDate
 ) -> anyhow::Result<()> {
     let path = event_path(base_path, day);
@@ -87,7 +87,7 @@ pub fn compile_day_records(
 }
 
 fn compile_records(
-    database: &Database,
+    database: &mut Database,
     path: &PathBuf,
 ) -> anyhow::Result<Vec<FileAction>> {
     let mut fingerprints: HashMap<PathBuf, u64> = HashMap::new();
@@ -107,26 +107,27 @@ fn compile_records(
 
 fn process_records(
     actions: Vec<FileAction>,
-    database: &Database
+    database: &mut Database
 ) -> anyhow::Result<()> {
-    // TODO: Wrap this for in a transaction
+    let tx = database.new_transaction()?;
     for item in actions {
         match item {
             FileAction::Upsert { path, fingerprint } => {
                 let raw = fs::read_to_string(path)?;
                 let record: Record = constellation_eridanus::parse(&raw).map_err(|s: String| anyhow!(s))?.try_into()?;
-                database.upsert_record(record, fingerprint)?;
+                upsert_record(&tx, record, fingerprint)?;
             },
             FileAction::Delete { path } => {
-                database.remove_record(&path)?;
+                remove_record(&tx, &path)?;
             },
             FileAction::ClockUpsert { path, clock } => {
-                todo!()
+                upsert_clock(&tx, &path, clock)?;
             },
             FileAction::ClockDelete { path } => {
-                todo!()
+                delete_clock(&tx, &path)?;
             }
         }
     };
+    tx.commit()?;
     Ok(())
 }

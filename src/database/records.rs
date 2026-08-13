@@ -65,5 +65,13 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
 }
 
 pub fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
-    todo!()
+    const GET_START: &str = include_str!("../../queries/records/get-start.sql");
+    const DELETE_STITCH: &str = include_str!("../../queries/records/delete-stitch.sql");
+    const DELETE_RECORD: &str = include_str!("../../queries/records/delete.sql");
+
+    let start: i64 = conn.query_row(GET_START, params![path.to_str()], |row| row.get(0))?;
+
+    conn.execute(DELETE_STITCH, params![start])?;
+    conn.execute(DELETE_RECORD, params![path.to_str()])?;
+    Ok(())
 }

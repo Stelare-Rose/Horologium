@@ -1,4 +1,5 @@
 use chrono::{DateTime, NaiveDate, Utc};
+use serde::{Deserialize, Serialize};
 
 mod record;
 mod tags;
@@ -25,7 +26,13 @@ pub enum Event {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Color(String);
+impl Color {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
 pub struct Tag {
     pub id: String,
     pub name: String,

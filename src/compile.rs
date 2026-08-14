@@ -6,6 +6,7 @@ use crate::database::{Database};
 
 mod utils;
 mod records;
+mod projects;
 
 pub struct Compile { pub base_path: PathBuf, pub database: Database }
 

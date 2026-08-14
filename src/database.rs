@@ -6,9 +6,11 @@ use rusqlite::{Connection, Transaction};
 mod records;
 mod clocks;
 mod fingerprints;
+mod projects;
 
 pub use records::{upsert_record, remove_record};
 pub use clocks::{upsert_clock, delete_clock};
+pub use projects::{upsert_project, remove_project};
 
 pub struct Database {
     conn: Connection

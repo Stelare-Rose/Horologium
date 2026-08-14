@@ -2,6 +2,8 @@ use std::{collections::HashMap, fs, path::PathBuf};
 
 use anyhow::anyhow;
 
+use crate::{compile::Compile, database::Database};
+
 pub enum FileAction {
     Upsert {
         path: PathBuf,
@@ -73,4 +75,20 @@ fn find_clock_files(path: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {
     }
 
     Ok(clock_files)
+}
+
+pub fn delete_path_from_any_table(compile: &Compile, path: &PathBuf) -> anyhow::Result<()> {
+    let path_str = path.to_str().ok_or_else(|| anyhow!("non-utf8 path"))?;
+
+    if path_str.contains("/Records/") {
+        compile.database.remove_record(path)?;
+    } else if path_str.contains("/Projects/") {
+        compile.database.remove_project(path)?;
+    } else if path_str.contains("/Tags/") {
+        compile.database.remove_tag(path)?;
+    } else {
+        return Err(anyhow!("Could not determine record type from path: {path_str}"));
+    }
+
+    Ok(())
 }

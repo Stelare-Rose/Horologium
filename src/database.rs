@@ -19,7 +19,7 @@ impl Database {
             fs::create_dir_all(parent)?;
         }
         let conn = Connection::open(db_path)
-            .context("Database Init | Could not open database")?;
+            .context("Database Init | could not open database")?;
         init_schema(&conn)?;
         Ok(Database { conn })
     }

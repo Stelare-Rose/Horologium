@@ -28,7 +28,7 @@ fn get_record_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<u64> {
             row.get::<_, i64>(0)
         })
         .optional()
-        .context("Database Clock Get | Failed to fetch clock")?;
+        .context("Database Clock Get | failed to fetch clock")?;
 
     match row {
         None => Ok(0),
@@ -58,7 +58,7 @@ pub fn upsert_clock(conn: &Connection, path: &PathBuf, sum: u64) -> anyhow::Resu
     const UPSERT: &str = include_str!("../../queries/clocks/upsert.sql");
 
     conn.execute(UPSERT, params![path.to_str(), sum as i64])
-        .context("Database Clock Upsert | Failed to upsert clock")?;
+        .context("Database Clock Upsert | failed to upsert clock")?;
 
     Ok(())
 }
@@ -67,7 +67,7 @@ pub fn delete_clock(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
     const DELETE: &str = include_str!("../../queries/clocks/delete.sql");
 
     conn.execute(DELETE, params![path.to_str()])
-        .context("Database Clock Delete | Failed to delete clock")?;
+        .context("Database Clock Delete | failed to delete clock")?;
 
     Ok(())
 }

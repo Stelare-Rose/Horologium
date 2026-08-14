@@ -18,7 +18,7 @@ impl Actions {
     }
 }
 
-pub fn define_tag(
+fn define_tag(
     base_path: &PathBuf,
     device_id: &str,
     name: String,
@@ -49,7 +49,7 @@ pub fn define_tag(
     Ok(TagId { id, name })
 }
 
-pub fn modify_tags(
+fn modify_tags(
     base_path: &PathBuf,
     device_id: &str,
     from: &PathBuf,

@@ -14,7 +14,7 @@ impl Compile {
     }
 }
 
-pub fn compile_all_records(
+fn compile_all_records(
     base_path: &PathBuf,
     database: &mut Database,
 ) -> anyhow::Result<()> {
@@ -73,7 +73,7 @@ pub fn compile_all_records(
     Ok(())
 }
 
-pub fn compile_day_records(
+fn compile_day_records(
     base_path: &PathBuf,
     database: &mut Database,
     day: &NaiveDate

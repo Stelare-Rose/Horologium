@@ -22,7 +22,7 @@ impl Actions {
     }
 }
 
-pub fn define_project(
+fn define_project(
     base_path: &PathBuf,
     device_id: &str,
     name: String,
@@ -54,7 +54,7 @@ pub fn define_project(
     Ok(ProjectId { id, name })
 }
 
-pub fn modify_project(
+fn modify_project(
     base_path: &PathBuf,
     device_id: &str,
     from: &PathBuf,
@@ -87,7 +87,7 @@ pub fn modify_project(
     Ok(ProjectId { id, name })
 }
 
-pub fn complete_project(
+fn complete_project(
     base_path: &PathBuf,
     device_id: &str,
     target: &PathBuf

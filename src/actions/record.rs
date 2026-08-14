@@ -21,7 +21,7 @@ impl Actions {
     }
 }
 
-pub fn start(
+fn start(
     base_path: &PathBuf,
     device_id: &str,
     name: String,
@@ -58,7 +58,7 @@ pub fn start(
     Ok(RecordId(id))
 }
 
-pub fn stop (
+fn stop (
     base_path: &PathBuf,
     device_id: &str,
     name: Option<String>,
@@ -92,7 +92,7 @@ pub fn stop (
     Ok(RecordId(id))
 }
 
-pub fn modify_record (
+fn modify_record (
     base_path: &PathBuf,
     device_id: &str,
     from: &PathBuf,

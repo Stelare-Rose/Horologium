@@ -16,7 +16,8 @@ pub struct Database {
 impl Database {
     pub fn new(db_path: &Path) -> anyhow::Result<Self> {
         if let Some(parent) = db_path.parent() {
-            fs::create_dir_all(parent)?;
+            fs::create_dir_all(parent)
+                .context("Actions Init | could not create all directories for base_path (is base_path a proper directory?)")?;
         }
         let conn = Connection::open(db_path)
             .context("Database Init | could not open database")?;

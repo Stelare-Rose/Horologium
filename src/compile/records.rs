@@ -3,7 +3,16 @@ use std::{collections::HashMap, fs, path::{PathBuf}};
 use anyhow::anyhow;
 use chrono::NaiveDate;
 
-use crate::{compile::utils::{FileAction, compare_fingerprints, count_clocks}, database::{Database, delete_clock, remove_record, upsert_clock, upsert_record}, types::Record, utils::{event_path, fingerprint}};
+use crate::{compile::{utils::{FileAction, compare_fingerprints, count_clocks}, Compile}, database::{Database, delete_clock, remove_record, upsert_clock, upsert_record}, types::Record, utils::{event_path, fingerprint}};
+
+impl Compile {
+    pub fn compile_all_records(&mut self) -> anyhow::Result<()> {
+        compile_all_records(&self.base_path, &mut self.database)
+    }
+    pub fn compile_day_records(&mut self, day: &NaiveDate) -> anyhow::Result<()> {
+        compile_day_records(&self.base_path, &mut self.database, day)
+    }
+}
 
 pub fn compile_all_records(
     base_path: &PathBuf,

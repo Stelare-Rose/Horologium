@@ -8,6 +8,20 @@ use nanoid::nanoid;
 
 use crate::{types::{Color, Project, ProjectId, ProjectState}};
 
+use super::Actions;
+
+impl Actions {
+    pub fn define_project(&self, name: String, color: Vec<Color>, body: Option<String>) -> anyhow::Result<ProjectId> {
+        define_project(&self.base_path, &self.device_id, name, color, body)
+    }
+    pub fn modify_project(&self, from: &PathBuf, project: Project) -> anyhow::Result<ProjectId> {
+        modify_project(&self.base_path, &self.device_id, from, project)
+    }
+    pub fn complete_project(&self, target: &PathBuf) -> anyhow::Result<ProjectId> {
+        complete_project(&self.base_path, &self.device_id, target)
+    }
+}
+
 pub fn define_project(
     base_path: &PathBuf,
     device_id: &str,

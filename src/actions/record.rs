@@ -7,6 +7,20 @@ use anyhow::anyhow;
 
 use crate::{types::{Event, ProjectId, Record, RecordId, TagId}, utils::{event_path, uuidv7_from_datetime}};
 
+use super::Actions;
+
+impl Actions {
+    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
+        start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
+    }
+    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
+        stop(&self.base_path, &self.device_id, name, body, start_time)
+    }
+    pub fn modify_record(&self, from: &PathBuf, record: Record) -> anyhow::Result<RecordId> {
+        modify_record(&self.base_path, &self.device_id, from, record)
+    }
+}
+
 pub fn start(
     base_path: &PathBuf,
     device_id: &str,

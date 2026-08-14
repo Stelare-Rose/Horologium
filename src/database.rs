@@ -7,10 +7,12 @@ mod records;
 mod clocks;
 mod fingerprints;
 mod projects;
+mod tags;
 
 pub use records::{upsert_record, remove_record};
 pub use clocks::{upsert_clock, delete_clock};
 pub use projects::{upsert_project, remove_project};
+pub use tags::{upsert_tag, remove_tag};
 
 pub struct Database {
     conn: Connection

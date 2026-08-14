@@ -21,6 +21,7 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
     const UPDATE_PREV: &str = include_str!("../../queries/records/upsert-prev.sql");
     const UPSERT_RECORD: &str = include_str!("../../queries/records/upsert.sql");
     const INSERT_RECORD_TAG: &str = include_str!("../../queries/records/insert-tags.sql");
+    const CLEAN_TAG: &str = include_str!("../../queries/records/clean-tags.sql");
 
     let record_id = record.id.0;
     let start_epoch = record.start.timestamp_millis();
@@ -37,6 +38,7 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
                 path.to_str(), 
                 fp as i64
             ]).with_context(|| format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
+            conn.execute(CLEAN_TAG, params![record_id])?;
             let mut stmt = conn.prepare(INSERT_RECORD_TAG)?;
             for (i, tag) in tags.iter().enumerate() {
                 stmt.execute(params![

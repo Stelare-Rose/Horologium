@@ -370,6 +370,8 @@ dependencies = [
  "rusqlite",
  "rustc-hash",
  "sanitize-filename",
+ "serde",
+ "serde_json",
  "tempfile",
  "uuid",
 ]

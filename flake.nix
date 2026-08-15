@@ -14,14 +14,14 @@
 	in 
 	{
 		devShells.${system}.default = pkgs.mkShell rec {
-			name="Horologium-lib";
+			name="Horologium";
 			packages = with pkgs; [
           rustc
           cargo
           gcc  
           rust-analyzer
 				];
-			shellHook = "tmux -L Horologium-lib new-session -A -s Horologium-lib";
+			shellHook = "tmux -L Horologium new-session -A -s Horologium";
 			};
 		};
 	}

@@ -1,0 +1,8 @@
+[package]
+name = "horologium-svc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+horologium-lib = { path = "../horologium-lib" }
+anyhow = "1.0.103"

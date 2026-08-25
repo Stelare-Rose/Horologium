@@ -20,6 +20,9 @@ impl Compile {
             .context("Compilation Init | could not canonicalize path")?;
         Ok(Compile { base_path: canonical_path, database })
     }
+    pub fn compile_path(&self, path: &PathBuf) -> anyhow::Result<()>{
+        compile_path(&self, path)
+    }
 }
 
 fn compile_path(
@@ -55,6 +58,6 @@ fn compile_path(
             return Err(anyhow!("Compile Path | eri in path {dis_path} is not a valid schema. found schema {other}"))
         }
     };
-    todo!()
+    Ok(())
 }
 

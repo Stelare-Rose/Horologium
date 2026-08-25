@@ -10,10 +10,10 @@ use crate::{types::{Event, ProjectId, Record, RecordId, TagId}, utils::{event_pa
 use super::Actions;
 
 impl Actions {
-    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
+    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<PathBuf> {
         start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
     }
-    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
+    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<PathBuf> {
         stop(&self.base_path, &self.device_id, name, body, start_time)
     }
     pub fn modify_record(&self, from: &PathBuf, record: Record) -> anyhow::Result<RecordId> {
@@ -29,11 +29,11 @@ fn start(
     project: Option<ProjectId>,
     body: Option<String>, 
     start_time: Option<DateTime<Utc>>
-) -> anyhow::Result<RecordId> {
+) -> anyhow::Result<PathBuf> {
     let s = start_time.unwrap_or_else(Utc::now);
     let id = uuidv7_from_datetime(s).to_string();
 
-    let e = Event::Active { name: name.clone(),tags, project };
+    let e = Event::Active { name: name.clone(), tags, project };
     let r = Record { id: RecordId(id.clone()), start: s, event: e, body };
 
     let eri: Eri = r.into();
@@ -52,10 +52,10 @@ fn start(
 
     let sanitized = sanitize(name);
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
-    fs::write(file_path, serialized)?;
+    fs::write(&file_path, serialized)?;
     
 
-    Ok(RecordId(id))
+    Ok(file_path)
 }
 
 fn stop (
@@ -64,7 +64,7 @@ fn stop (
     name: Option<String>,
     body: Option<String>,
     start_time: Option<DateTime<Utc>>,
-) -> anyhow::Result<RecordId> { 
+) -> anyhow::Result<PathBuf> { 
     let s = start_time.unwrap_or_else(Utc::now);
     let id = uuidv7_from_datetime(s).to_string();
 
@@ -87,9 +87,9 @@ fn stop (
     let sanitized = sanitize(name.unwrap_or("untracked".to_string()));
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
-    fs::write(file_path, serialized)?;
+    fs::write(&file_path, serialized)?;
 
-    Ok(RecordId(id))
+    Ok(file_path)
 }
 
 fn modify_record (

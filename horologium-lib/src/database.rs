@@ -1,13 +1,14 @@
 use std::{fs, path::Path};
 
 use anyhow::Context;
-use rusqlite::{Connection, Transaction};
+use rusqlite::{Connection, Row, Transaction};
 
 mod records;
 mod clocks;
 mod fingerprints;
 mod projects;
 mod tags;
+mod utils;
 
 pub use records::{upsert_record, remove_record};
 pub use clocks::{upsert_clock, delete_clock};
@@ -30,6 +31,24 @@ impl Database {
     }
     pub fn new_transaction(&mut self) -> anyhow::Result<Transaction<'_>> {
         Ok(self.conn.transaction()?)
+    }
+    pub fn query<T, F>(&self, sql: &str, params: &[&dyn rusqlite::ToSql], f: F) -> anyhow::Result<Vec<T>>
+    where
+        F: FnMut(&Row<'_>) -> rusqlite::Result<T>,
+    {
+        let mut stmt = self.conn
+            .prepare(sql)
+            .with_context(|| format!("Database Query | failed to prepare statement: {sql}"))?;
+        let rows = stmt
+            .query_map(params, f)
+            .with_context(|| format!("Database Query | failed to execute query: {sql}"))?;
+        rows.collect::<Result<Vec<T>, _>>()
+            .with_context(|| format!("Database Query | failed to collect rows: {sql}"))
+    }
+    pub fn execute(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> anyhow::Result<usize> {
+        self.conn
+            .execute(sql, params)
+            .with_context(|| format!("Database Execute | failed to execute statement: {sql}"))
     }
 }
 fn init_schema(conn: &Connection) -> anyhow::Result<()>{

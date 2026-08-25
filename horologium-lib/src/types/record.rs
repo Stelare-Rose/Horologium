@@ -55,7 +55,7 @@ impl TryFrom<Eri> for Record {
 
 impl From<Record> for Eri {
     fn from(value: Record) -> Self {
-        const SCHEMA: &str = "horologium:event";
+        const SCHEMA: &str = "horologium:record";
         const VERSION: &str = "v1.0.0";
         let mut content: HashMap<String, Value> = HashMap::new();
         let mut event: HashMap<String, Value> = HashMap::new();

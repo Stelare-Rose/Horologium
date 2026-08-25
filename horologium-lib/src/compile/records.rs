@@ -23,6 +23,17 @@ fn compile_all_records(
 
     let records_root = base_path.join("Records");
     if !records_root.is_dir() {
+        // Any remaining clocks are from directories that don't exist, clean up db
+        for c in clocks.into_keys() {
+            let mut delete_actions = compile_records(database, &c)?;
+            all_actions.append(&mut delete_actions);
+            all_actions.push(
+                FileAction::ClockDelete { 
+                    path: c 
+                }
+            );
+        }
+        process_records(all_actions, database)?;
         return Ok(());
     }
 
@@ -62,6 +73,8 @@ fn compile_all_records(
 
     // Any remaining clocks are from directories that don't exist, clean up db
     for c in clocks.into_keys() {
+        let mut delete_actions = compile_records(database, &c)?;
+        all_actions.append(&mut delete_actions);
         all_actions.push(
             FileAction::ClockDelete { 
                 path: c 

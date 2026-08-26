@@ -2,7 +2,7 @@ use clap::Parser;
 use dirs::{cache_dir, data_dir};
 use horologium_lib::{actions::Actions, compile::Compile, database::Database};
 
-use crate::{cli::{Cli, Commands, TagCommands}, utils::{open_editor, resolve_body, resolve_color, resolve_project, resolve_tags}};
+use crate::{cli::{Cli, Commands, ProjectCommands, TagCommands}, utils::{resolve_body, resolve_color, resolve_project, resolve_tags}};
 
 mod cli;
 mod utils;
@@ -50,6 +50,19 @@ fn main() -> anyhow::Result<()> {
                     compile.compile_path(&path)?;
                 }
             };
+        },
+        Commands::Project(args) => {
+            match args.command {
+                ProjectCommands::Define(args) => {
+                    let colors = args.color
+                        .iter()
+                        .map(|c| resolve_color(c.to_string()))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    let body = resolve_body(args.body)?;
+                    let path = actions.define_project(args.name, colors, body)?;
+                    compile.compile_path(&path)?;
+                }
+            }
         }
     }
     Ok(())

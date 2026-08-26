@@ -24,6 +24,7 @@ pub enum Commands {
     Start(StartArgs),
     Stop(StopArgs),
     Tag(TagArgs),
+    Project(ProjectArgs),
     Compile
 }
 
@@ -64,6 +65,27 @@ pub struct DefineArgs {
     pub name: String,
     /// Optional list of colors, delimited by "," Available colors are
     /// strawberry, orange, lemon, leaf, mint, sky, blueberry, grape, plum, lavender, lilac, and pink.
-    #[arg(short, long)]
+    #[arg(short, long, value_delimiter=',')]
     pub color: Vec<String>
+}
+#[derive(Args)]
+pub struct ProjectArgs {
+    #[command(subcommand)]
+    pub command: ProjectCommands
+}
+#[derive(Subcommand)]
+pub enum ProjectCommands {
+    Define(DefineProjectArgs)
+}
+#[derive(Args)]
+pub struct DefineProjectArgs {
+    /// The name of the new tag
+    pub name: String,
+    /// Optional list of colors, delimited by "," Available colors are
+    /// strawberry, orange, lemon, leaf, mint, sky, blueberry, grape, plum, lavender, lilac, and pink.
+    #[arg(short, long, value_delimiter=',')]
+    pub color: Vec<String>,
+    /// Optional body text, pass nothing to edit in terminal editor
+    #[arg(short, long, num_args = 0..=1, default_missing_value="__OPEN_EDITOR__")]
+    pub body: Option<String>,
 }

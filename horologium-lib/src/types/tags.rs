@@ -14,15 +14,18 @@ impl TryFrom<Eri> for Tag {
         let name = value.content.get("name")
             .and_then(|v| v.as_str())
             .ok_or_else(|| anyhow!("Missing Name"))?;
-        let color: Vec<Color> = value.content.get("color")
-            .and_then(|v| v.as_array())
-            .map(|m| { 
-                m.iter()
-                    .filter_map(|i| i.as_str())
-                    .map(|s| Color(s.to_string()))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let raw_color = value.content.get("color")
+            .and_then(|v| v.as_array());
+        let color = match raw_color {
+            Some(r) => {
+                let mut v = Vec::new();
+                for c in r.iter().filter_map(|i| i.as_str()) {
+                    v.push(Color(c.parse::<Colorscheme>()?));
+                }
+                v
+            },
+            None => vec![]
+        };
         Ok(Tag { id: id.to_string(), name: name.to_string(), color })
     }
 }
@@ -38,7 +41,7 @@ impl From<Tag> for Eri {
         content.insert("id".to_string(), Value::Str(id));
         content.insert("name".to_string(), Value::Str(name));
         content.insert("color".to_string(), Value::Array(
-            color.into_iter().map(|c| Value::Str(c.0)).collect()
+            color.into_iter().map(|c| Value::Str(c.0.to_string())).collect()
         ));
 
         Eri { schema: SCHEMA.to_string(), version: VERSION.to_string(), content, body: None }

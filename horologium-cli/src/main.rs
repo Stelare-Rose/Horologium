@@ -21,19 +21,16 @@ fn main() -> anyhow::Result<()> {
                 Some(candidate) => Some(resolve_project(candidate, &database)?),
                 None => None
             };
-            let body = match args.body {
-                Some(body) if body == "__OPEN_EDITOR__" => {
-                    Some(open_editor()?)
-                }
-                Some(body) => Some(body),
-                None => None
-            };
+            let body = resolve_body(args.body)?; 
             
             let path = actions.start(args.name, tags, project, body, None)?;
             compile.compile_path(&path)?;
         }
         Commands::Stop(args) => {
+            let body = resolve_body(args.body)?;           
 
+            let path = actions.stop(args.name, body, None)?;
+            compile.compile_path(&path)?;
         }
         Commands::Compile => {
             compile.compile_tags()?;
@@ -50,4 +47,14 @@ fn main() -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+fn resolve_body(body: Option<String>) -> anyhow::Result<Option<String>> {
+    match body {
+        Some(body) if body == "__OPEN_EDITOR__" => {
+            Ok(Some(open_editor()?))
+        }
+        Some(body) => Ok(Some(body)),
+        None => Ok(None)
+    }
 }

@@ -45,6 +45,9 @@ pub struct StartArgs {
 pub struct StopArgs {
     /// The name of the new event
     pub name: Option<String>,
+    /// Optional body text, pass nothing to edit in terminal editor
+    #[arg(short, long, num_args = 0..=1, default_missing_value="__OPEN_EDITOR__")]
+    pub body: Option<String>,
 }
 #[derive(Args)]
 pub struct TagArgs {

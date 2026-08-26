@@ -83,3 +83,13 @@ pub fn resolve_color(candidate: String) -> anyhow::Result<Color>{
         None => Err(anyhow!("unable to match color {candidate}"))
     }
 }
+
+pub fn resolve_body(body: Option<String>) -> anyhow::Result<Option<String>> {
+    match body {
+        Some(body) if body == "__OPEN_EDITOR__" => {
+            Ok(Some(open_editor()?))
+        }
+        Some(body) => Ok(Some(body)),
+        None => Ok(None)
+    }
+}

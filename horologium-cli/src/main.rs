@@ -2,7 +2,7 @@ use clap::Parser;
 use dirs::{cache_dir, data_dir};
 use horologium_lib::{actions::Actions, compile::Compile, database::Database};
 
-use crate::{cli::{Cli, Commands, TagCommands}, utils::{open_editor, resolve_color, resolve_project, resolve_tags}};
+use crate::{cli::{Cli, Commands, TagCommands}, utils::{open_editor, resolve_body, resolve_color, resolve_project, resolve_tags}};
 
 mod cli;
 mod utils;
@@ -55,12 +55,4 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn resolve_body(body: Option<String>) -> anyhow::Result<Option<String>> {
-    match body {
-        Some(body) if body == "__OPEN_EDITOR__" => {
-            Ok(Some(open_editor()?))
-        }
-        Some(body) => Ok(Some(body)),
-        None => Ok(None)
-    }
-}
+

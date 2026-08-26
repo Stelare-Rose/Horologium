@@ -25,6 +25,12 @@ impl Compile {
     }
 }
 
+// Hi, I needed to leave a note here because there's a subtle design decision that I left here.
+// Compile_path both does not consult the clock nor does it update the state of the clock in the database.
+// This is because intentionally, the state of the clock refers to the directory, not the file.
+// Compile_path is a method that is scoped to just compile the single file. Therefore,
+// This method cannot claim knowledge of the whole directory. Therefore,
+// The state of the clock should not be updated to claim as such.
 fn compile_path(
     compile: &Compile,
     path: &PathBuf

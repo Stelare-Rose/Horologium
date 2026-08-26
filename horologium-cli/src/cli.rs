@@ -64,5 +64,6 @@ pub struct DefineArgs {
     pub name: String,
     /// Optional list of colors, delimited by "," Available colors are
     /// strawberry, orange, lemon, leaf, mint, sky, blueberry, grape, plum, lavender, lilac, and pink.
+    #[arg(short, long)]
     pub color: Vec<String>
 }

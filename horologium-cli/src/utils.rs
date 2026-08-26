@@ -1,5 +1,6 @@
 use anyhow::{Context, anyhow};
-use horologium_lib::{database::Database, types::{ProjectId, TagId}};
+use horologium_lib::{database::Database, types::{Color, Colorscheme, ProjectId, TagId}};
+use strum::IntoEnumIterator;
 use std::{env, fs, process::Command};
 use tempfile::NamedTempFile;
 
@@ -62,5 +63,23 @@ pub fn resolve_project(candidate: String, database: &Database) -> anyhow::Result
         0 => Err(anyhow!("unknown project: {candidate}")),
         1 => Ok(ProjectId { id: matches[0].id.clone(), name: matches[0].name.clone() }),
         _ => Err(anyhow!("ambiguous project {candidate}: matches {:?}", matches.iter().map(|ProjectId { name, .. }| name).collect::<Vec<_>>())),
+    }
+}
+
+pub fn resolve_color(candidate: String) -> anyhow::Result<Color>{
+    let input = candidate.to_lowercase();
+
+    let color = Colorscheme::iter()
+        .map(|v| {
+            let score = strsim::jaro_winkler(&input, &v.to_string());
+            (v, score)
+        })
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .filter(|(_, score)| *score > 0.8) 
+        .map(|(v, _)| v);
+
+    match color {
+        Some(c) => Ok(Color(c)),
+        None => Err(anyhow!("unable to match color {candidate}"))
     }
 }

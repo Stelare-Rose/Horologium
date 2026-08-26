@@ -10,7 +10,7 @@ use crate::types::{Color, Tag, TagId};
 use super::Actions;
 
 impl Actions {
-    pub fn define_tag(&self, name: String, color: Vec<Color>) -> anyhow::Result<TagId> {
+    pub fn define_tag(&self, name: String, color: Vec<Color>) -> anyhow::Result<PathBuf> {
         define_tag(&self.base_path, &self.device_id, name, color)
     }
     pub fn modify_tag(&self, from: &PathBuf, tags: Tag) -> anyhow::Result<TagId> {
@@ -23,7 +23,7 @@ fn define_tag(
     device_id: &str,
     name: String,
     color: Vec<Color>
-) -> anyhow::Result<TagId> {
+) -> anyhow::Result<PathBuf> {
     let id = format!("tag_{}", nanoid!(11));
 
     let t = Tag { id: id.clone(), name: name.clone(), color };
@@ -44,9 +44,9 @@ fn define_tag(
     let sanitized = sanitize(&name);
     let file_path = path.join(format!("{sanitized}-{id}-{sanitized_device}.eri"));
 
-    fs::write(file_path, serialized)?;
+    fs::write(&file_path, serialized)?;
 
-    Ok(TagId { id, name })
+    Ok(file_path)
 }
 
 fn modify_tags(

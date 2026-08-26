@@ -1,6 +1,6 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
-use strum_macros::{Display, EnumString};
+use strum_macros::{Display, EnumIter, EnumString};
 
 mod record;
 mod tags;
@@ -28,7 +28,7 @@ pub enum Event {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Color(Colorscheme);
+pub struct Color(pub Colorscheme);
 impl Color {
     pub fn as_str(&self) -> String {
         self.0.to_string()
@@ -61,7 +61,7 @@ pub struct Fingerprint {
     pub ctime_nsec: i64,
 }
 
-#[derive(Display, EnumString, Serialize, Deserialize)]
+#[derive(Display, EnumString, EnumIter, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 pub enum Colorscheme {
     Strawberry,

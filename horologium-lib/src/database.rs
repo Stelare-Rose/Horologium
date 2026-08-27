@@ -56,11 +56,13 @@ fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     const CREATE_PROJECTS: &str = include_str!("../schema/projects.sql");
     const CREATE_TAGS: &str = include_str!("../schema/tags.sql");
     const CREATE_CLOCKS: &str = include_str!("../schema/clocks.sql");
+    const INIT_PRAGMA: &str = include_str!("../schema/pragma.sql");
 
     conn.execute_batch(CREATE_RECORDS)?;
     conn.execute_batch(CREATE_PROJECTS)?;
     conn.execute_batch(CREATE_TAGS)?;
     conn.execute_batch(CREATE_CLOCKS)?;
+    conn.execute_batch(INIT_PRAGMA)?;
 
     Ok(())
 }

@@ -6,3 +6,13 @@ edition = "2024"
 [dependencies]
 horologium-lib = { path = "../horologium-lib" }
 anyhow = "1.0.103"
+notify = "8.2.0"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+dirs = "6.0.0"
+
+[dependencies.tokio]
+version = "1.53.1"
+features = [
+  "full"
+]

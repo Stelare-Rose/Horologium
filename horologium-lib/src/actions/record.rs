@@ -10,10 +10,10 @@ use crate::{types::{Event, ProjectId, Record, RecordId, TagId}, utils::{event_pa
 use super::Actions;
 
 impl Actions {
-    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<PathBuf> {
+    pub fn start(&self, name: String, tags: Vec<TagId>, project: Option<ProjectId>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
         start(&self.base_path, &self.device_id, name, tags, project, body, start_time)
     }
-    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<PathBuf> {
+    pub fn stop(&self, name: Option<String>, body: Option<String>, start_time: Option<DateTime<Utc>>) -> anyhow::Result<RecordId> {
         stop(&self.base_path, &self.device_id, name, body, start_time)
     }
     pub fn modify_record(&self, from: &PathBuf, record: Record) -> anyhow::Result<RecordId> {
@@ -29,7 +29,7 @@ fn start(
     project: Option<ProjectId>,
     body: Option<String>, 
     start_time: Option<DateTime<Utc>>
-) -> anyhow::Result<PathBuf> {
+) -> anyhow::Result<RecordId> {
     let s = start_time.unwrap_or_else(Utc::now);
     let id = uuidv7_from_datetime(s).to_string();
 
@@ -55,7 +55,7 @@ fn start(
     fs::write(&file_path, serialized)?;
     
 
-    Ok(file_path)
+    Ok(RecordId(id))
 }
 
 fn stop (
@@ -64,7 +64,7 @@ fn stop (
     name: Option<String>,
     body: Option<String>,
     start_time: Option<DateTime<Utc>>,
-) -> anyhow::Result<PathBuf> { 
+) -> anyhow::Result<RecordId> { 
     let s = start_time.unwrap_or_else(Utc::now);
     let id = uuidv7_from_datetime(s).to_string();
 
@@ -89,7 +89,7 @@ fn stop (
 
     fs::write(&file_path, serialized)?;
 
-    Ok(file_path)
+    Ok(RecordId(id))
 }
 
 fn modify_record (

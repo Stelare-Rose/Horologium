@@ -11,7 +11,7 @@ use crate::{types::{Color, Project, ProjectId, ProjectState}};
 use super::Actions;
 
 impl Actions {
-    pub fn define_project(&self, name: String, color: Vec<Color>, body: Option<String>) -> anyhow::Result<PathBuf> {
+    pub fn define_project(&self, name: String, color: Vec<Color>, body: Option<String>) -> anyhow::Result<ProjectId> {
         define_project(&self.base_path, &self.device_id, name, color, body)
     }
     pub fn modify_project(&self, from: &PathBuf, project: Project) -> anyhow::Result<ProjectId> {
@@ -28,7 +28,7 @@ fn define_project(
     name: String,
     color: Vec<Color>,
     body: Option<String>
-) -> anyhow::Result<PathBuf> {
+) -> anyhow::Result<ProjectId> {
     let id = format!("proj_{}", nanoid!(11));
 
     let p = Project { id: id.clone(), name: name.clone(), state: ProjectState::Active, color, body };
@@ -51,7 +51,7 @@ fn define_project(
 
     fs::write(&file_path, serialized)?;
 
-    Ok(file_path)
+    Ok(ProjectId { id, name })
 }
 
 fn modify_project(

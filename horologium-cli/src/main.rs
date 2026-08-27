@@ -23,15 +23,17 @@ fn main() -> anyhow::Result<()> {
                 None => None
             };
             let body = resolve_body(args.body)?; 
+            let name = args.name;
             
-            let path = actions.start(args.name, tags, project, body, None)?;
-            compile.compile_path(&path)?;
+            let record_id = actions.start(name.clone(), tags, project, body, None)?;
+            println!("Successfully made event {name} with id {}", record_id.0);
         }
         Commands::Stop(args) => {
             let body = resolve_body(args.body)?;           
 
-            let path = actions.stop(args.name, body, None)?;
-            compile.compile_path(&path)?;
+            let name = args.name;
+            let record_id = actions.stop(name, body, None)?;
+            println!("Successfully made stop event with id {}", record_id.0);
         }
         Commands::Compile => {
             compile.compile_tags()?;
@@ -47,8 +49,13 @@ fn main() -> anyhow::Result<()> {
                         .map(|c| resolve_color(c.to_string()))
                         .collect::<Result<Vec<_>, _>>()?;
 
-                    let path = actions.define_tag(args.name, colors)?;
-                    compile.compile_path(&path)?;
+                    let display = colors.first().map(|c| hex_to_rgb(c.0.hex(&Mode::Light)));
+
+                    let tag_id = actions.define_tag(args.name.clone(), colors)?;
+                    match display {
+                        Some(display) => println!("Successfully made tag {} with id {}", args.name.color(display), tag_id.id),
+                        None => println!("Successfully made tag {} with id {}", args.name, tag_id.id),
+                    }
                 }
             };
         },
@@ -59,9 +66,13 @@ fn main() -> anyhow::Result<()> {
                         .iter()
                         .map(|c| resolve_color(c.to_string()))
                         .collect::<Result<Vec<_>, _>>()?;
+                    let display = colors.first().map(|c| hex_to_rgb(c.0.hex(&Mode::Light)));
                     let body = resolve_body(args.body)?;
-                    let path = actions.define_project(args.name, colors, body)?;
-                    compile.compile_path(&path)?;
+                    let project_id = actions.define_project(args.name.clone(), colors, body)?;
+                    match display {
+                        Some(display) => println!("Successfully made project {} with id {}", args.name.color(display), project_id.id),
+                        None => println!("Successfully made project {} with id {}", args.name, project_id.id),
+                    }
                 }
             }
         },

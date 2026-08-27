@@ -2,6 +2,9 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, Args};
 
+use crate::cli::debug::DebugArgs;
+
+pub mod debug;
 
 #[derive(Parser)]
 #[command(name = "horologium", about = "A time tracker")]
@@ -25,6 +28,7 @@ pub enum Commands {
     Stop(StopArgs),
     Tag(TagArgs),
     Project(ProjectArgs),
+    Debug(DebugArgs),
     Compile
 }
 

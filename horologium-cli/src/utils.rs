@@ -1,5 +1,6 @@
 use anyhow::{Context, anyhow};
 use horologium_lib::{database::Database, types::{Color, Colorscheme, ProjectId, TagId}};
+use owo_colors::Rgb;
 use strum::IntoEnumIterator;
 use std::{env, fs, process::Command};
 use tempfile::NamedTempFile;
@@ -92,4 +93,12 @@ pub fn resolve_body(body: Option<String>) -> anyhow::Result<Option<String>> {
         Some(body) => Ok(Some(body)),
         None => Ok(None)
     }
+}
+
+pub fn hex_to_rgb(hex: &str) -> Rgb {
+    let hex = hex.trim_start_matches('#');
+    let r = u8::from_str_radix(&hex[0..2], 16).unwrap();
+    let g = u8::from_str_radix(&hex[2..4], 16).unwrap();
+    let b = u8::from_str_radix(&hex[4..6], 16).unwrap();
+    Rgb(r, g, b)
 }

@@ -1,8 +1,9 @@
 use clap::Parser;
 use dirs::{cache_dir, data_dir};
-use horologium_lib::{actions::Actions, compile::Compile, database::Database};
+use horologium_lib::{actions::Actions, compile::Compile, database::Database, types::{Colorscheme, Mode}};
+use owo_colors::OwoColorize;
 
-use crate::{cli::{Cli, Commands, ProjectCommands, TagCommands}, utils::{resolve_body, resolve_color, resolve_project, resolve_tags}};
+use crate::{cli::{Cli, Commands, ProjectCommands, TagCommands, debug::DebugCommands}, utils::{hex_to_rgb, resolve_body, resolve_color, resolve_project, resolve_tags}};
 
 mod cli;
 mod utils;
@@ -61,6 +62,34 @@ fn main() -> anyhow::Result<()> {
                     let body = resolve_body(args.body)?;
                     let path = actions.define_project(args.name, colors, body)?;
                     compile.compile_path(&path)?;
+                }
+            }
+        },
+        Commands::Debug(args) => {
+            match args.command {
+                DebugCommands::DisplayColors => {
+                    let colors = [
+                        Colorscheme::Strawberry,
+                        Colorscheme::Orange,
+                        Colorscheme::Lemon,
+                        Colorscheme::Leaf,
+                        Colorscheme::Mint,
+                        Colorscheme::Sky,
+                        Colorscheme::Blueberry,
+                        Colorscheme::Grape,
+                        Colorscheme::Plum,
+                        Colorscheme::Lavender,
+                        Colorscheme::Lilac,
+                        Colorscheme::Pink,
+                    ];
+
+                    let mode: Mode = Mode::Light;
+
+                    for color in colors {
+                        let hex = color.hex(&mode);
+                        let rgb = hex_to_rgb(hex);
+                        println!("{}", format!("{}", color).color(rgb));
+                    }
                 }
             }
         }

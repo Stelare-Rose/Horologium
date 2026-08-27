@@ -77,3 +77,51 @@ pub enum Colorscheme {
     Lilac,
     Pink
 }
+
+#[derive(Clone)]
+pub enum Mode {
+    Light,
+    Dark,
+}
+
+impl Colorscheme {
+    pub fn hex(&self, mode: &Mode) -> &'static str {
+        match (self, mode) {
+            (Colorscheme::Strawberry, Mode::Light) => "#cf8282",
+            (Colorscheme::Strawberry, Mode::Dark)  => "#cf8282",
+
+            (Colorscheme::Orange, Mode::Light) => "#d4a266",
+            (Colorscheme::Orange, Mode::Dark)  => "#d4a266",
+
+            (Colorscheme::Lemon, Mode::Light) => "#e3cd7f",
+            (Colorscheme::Lemon, Mode::Dark)  => "#e3cd7f",
+
+            (Colorscheme::Leaf, Mode::Light) => "#9ccc96",
+            (Colorscheme::Leaf, Mode::Dark)  => "#9ccc96",
+
+            (Colorscheme::Mint, Mode::Light) => "#99cfac",
+            (Colorscheme::Mint, Mode::Dark)  => "#99cfac",
+
+            (Colorscheme::Sky, Mode::Light) => "#90cdde",
+            (Colorscheme::Sky, Mode::Dark)  => "#90cdde",
+
+            (Colorscheme::Blueberry, Mode::Light) => "#9bb0de",
+            (Colorscheme::Blueberry, Mode::Dark)  => "#9bb0de",
+
+            (Colorscheme::Grape, Mode::Light) => "#9b98d6",
+            (Colorscheme::Grape, Mode::Dark)  => "#9b98d6",
+
+            (Colorscheme::Plum, Mode::Light) => "#aa99d1",
+            (Colorscheme::Plum, Mode::Dark)  => "#aa99d1",
+
+            (Colorscheme::Lavender, Mode::Light) => "#cca3d6",
+            (Colorscheme::Lavender, Mode::Dark)  => "#cca3d6",
+
+            (Colorscheme::Lilac, Mode::Light) => "#dbb4d3",
+            (Colorscheme::Lilac, Mode::Dark)  => "#dbb4d3",
+
+            (Colorscheme::Pink, Mode::Light) => "#edb7ca",
+            (Colorscheme::Pink, Mode::Dark)  => "#edb7ca",
+        }
+    }
+}

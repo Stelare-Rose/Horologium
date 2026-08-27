@@ -44,7 +44,7 @@ fn compile_tags(
         actions.push(FileAction::ClockUpsert { path: tags_root, clock });
         process_tags(actions, database)?;
     }
-    todo!()
+    Ok(())
 }
 
 fn process_tags(

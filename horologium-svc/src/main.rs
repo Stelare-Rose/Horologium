@@ -1,8 +1,9 @@
-use std::{collections::HashSet, path::PathBuf, time::Duration};
-use anyhow::{Context, Result};
-use horologium_lib::{compile::{self, Compile}, database::{self, Database}};
+use std::{collections::HashSet, path::PathBuf, time::{Duration, Instant}};
+use anyhow::{Context};
+use horologium_lib::{compile::{Compile}, database::{Database}};
 use notify::{EventKind, RecursiveMode, Watcher};
-use tokio::{io::join, sync::mpsc};
+use tokio::{ sync::mpsc, time::interval};
+use tracing::{info, error, debug};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,9 +30,9 @@ async fn main() -> anyhow::Result<()> {
         .watch(&watch_root, RecursiveMode::Recursive)
         .with_context(|| format!("init | failed to watch {watch_root:?}"))?;
 
-    tracing::info!(?watch_root, "init | watching for changes");
+    info!(?watch_root, "init | watching for changes");
     let mut pending: HashSet<PathBuf> = HashSet::new();
-    let mut drain_tick = tokio::time::interval(Duration::from_millis(300));
+    let mut drain_tick = interval(Duration::from_millis(200));
     loop {
         tokio::select! {
             Some(event) = rx.recv() => {
@@ -48,10 +49,15 @@ async fn main() -> anyhow::Result<()> {
                     if !pending.is_empty() {
                         let batch: Vec<PathBuf> = pending.drain().collect();
                         for path in batch {
-                            tracing::debug!(?path, "detected event at");
+                            debug!(?path, "detected event at");
+                            let start = Instant::now();
                             if let Err(e) = compile.compile_path(&path) {
-                                tracing::error!(?path, error = %e, "compiling | compile_path failed");
+                                error!(?path, error = %e, "compiling | compile_path failed");
+                            } else {
+                                let elapsed = start.elapsed();
+                                info!(item = %path.file_name().unwrap_or_default().to_string_lossy(), ?elapsed, "compiling | compile (single path) finished");
                             }
+
                         }
                     }
                 }
@@ -67,8 +73,11 @@ async fn main() -> anyhow::Result<()> {
 fn reconcile_all(db_path: &PathBuf, watch_path: &PathBuf) -> anyhow::Result<()> {
     let database: Database = Database::new(db_path)?;
     let mut compile: Compile = Compile::new(watch_path.to_path_buf(), database)?;
+    let start = Instant::now();
     compile.compile_projects()?;
     compile.compile_tags()?;
     compile.compile_all_records()?;
+    let elapsed = start.elapsed();
+    info!(?elapsed, "init | compile completed");
     Ok(())
 }

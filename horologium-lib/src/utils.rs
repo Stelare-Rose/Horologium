@@ -2,7 +2,6 @@ use std::fs;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
 
 use chrono::{DateTime, NaiveDate, Utc};
 use rustc_hash::FxHasher;

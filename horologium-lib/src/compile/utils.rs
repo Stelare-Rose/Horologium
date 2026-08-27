@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs, path::PathBuf};
 
 use anyhow::anyhow;
 
-use crate::{compile::Compile, database::Database};
+use crate::{compile::Compile};
 
 pub enum FileAction {
     Upsert {

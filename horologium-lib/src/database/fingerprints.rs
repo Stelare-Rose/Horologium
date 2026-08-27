@@ -1,6 +1,5 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use anyhow::Context;
 use rusqlite::{Connection, params};
 
 use super::Database;

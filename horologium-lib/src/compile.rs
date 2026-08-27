@@ -3,7 +3,7 @@ use std::{fs::{create_dir_all, read_to_string}, path::PathBuf};
 use anyhow::{Context, anyhow};
 use constellation_eridanus::parse;
 
-use crate::{compile::utils::delete_path_from_any_table, database::{self, Database}, types::{Project, Record, Tag}, utils::fingerprint};
+use crate::{compile::utils::delete_path_from_any_table, database::Database, types::{Project, Record, Tag}, utils::fingerprint};
 
 mod utils;
 mod records;

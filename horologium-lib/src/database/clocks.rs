@@ -49,6 +49,12 @@ fn get_all_record_clocks(conn: &Connection) -> anyhow::Result<HashMap<PathBuf, u
     let mut clocks = HashMap::new();
     for row in rows {
         let (path, sum) = row?;
+        if path.components().any(|p| {
+            let s = p.as_os_str();
+            s == "Projects" || s == "Tags"
+        }) {
+            continue;
+        }
         clocks.insert(path, sum as u64);
     }
     Ok(clocks)

@@ -1,0 +1,2 @@
+INSERT INTO Metadata (key, value) VALUES (?1, ?2)
+ON CONFLICT DO NOTHING;

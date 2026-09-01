@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS Metadata (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);

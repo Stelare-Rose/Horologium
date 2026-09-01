@@ -15,6 +15,7 @@ use crate::{
 
 mod cli;
 mod utils;
+mod reader;
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();

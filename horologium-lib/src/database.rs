@@ -1,7 +1,7 @@
 use std::{fs, io::ErrorKind, path::{Path, PathBuf}};
 
 use anyhow::{Context, anyhow};
-use rusqlite::{Connection, Row, Transaction, params};
+use rusqlite::{Connection, Transaction, params};
 
 mod records;
 mod clocks;

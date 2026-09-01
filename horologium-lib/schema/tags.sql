@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS RecordsTags (
 	PRIMARY KEY (tag_id, record_id)
 );
 CREATE INDEX IF NOT EXISTS idx_recordstags_record ON RecordsTags(record_id);
+CREATE INDEX IF NOT EXISTS idx_recordstags_tags ON RecordsTags(tag_id);

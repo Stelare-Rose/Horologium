@@ -49,14 +49,14 @@
         };
 
         default = self.packages.${system}.horologium-cli;
-        nixosModules.default = { pkgs, ... }: {
-          systemd.user.services.horologium-svc = {
-            description = "Horologium service";
-            wantedBy = [ "default.target" ];
-            serviceConfig = {
-              ExecStart = "${self.packages.${pkgs.system}.horologium-svc}/bin/horologium-svc";
-              Restart = "always";
-            };
+      };
+      nixosModules.default = { pkgs, ... }: {
+        systemd.user.services.horologium-svc = {
+          description = "Horologium service";
+          wantedBy = [ "default.target" ];
+          serviceConfig = {
+            ExecStart = "${self.packages.${pkgs.system}.horologium-svc}/bin/horologium-svc";
+            Restart = "always";
           };
         };
       };

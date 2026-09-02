@@ -58,12 +58,13 @@ pub fn display_timeline(
     let records = reader.get_records(start_ms, end_ms)?;
     let tag_map: HashMap<String, (String, Option<String>)> =
         reader.get_tag_map().unwrap_or_default();
+    let mut rows: Vec<Vec<String>> = Vec::new();
     for r in records {
         let raw_name = r.name.as_deref().unwrap_or("");
         if raw_name.trim().is_empty() {
             continue;
         }
-        let name = raw_name;
+        let name = raw_name.to_string();
         let start_str = DateTime::from_timestamp_millis(r.start)
             .map(|dt| dt.to_rfc3339())
             .unwrap_or_else(|| r.start.to_string());
@@ -102,32 +103,37 @@ pub fn display_timeline(
             }
             _ => "-".to_string(),
         };
-        println!("{name} | {start_str} | {end_str} | {tags_str} | {project_str}");
+        rows.push(vec![name, start_str, end_str, tags_str, project_str]);
     }
+    print_table(&["Name", "Start", "End", "Tags", "Projects"], rows, Some("Records"));
     Ok(())
 }
 
 pub fn display_tags(reader: &Reader) -> anyhow::Result<()> {
     let tags = reader.get_tags()?;
+    let mut rows: Vec<Vec<String>> = Vec::new();
     for tag in tags {
         if tag.name.trim().is_empty() {
             continue;
         }
         let colored = format_colored(&tag.name, tag.color.as_deref());
-        println!("{colored}");
+        rows.push(vec![colored]);
     }
+    print_table(&["Tag"], rows, Some("Tags"));
     Ok(())
 }
 
 pub fn display_projects(reader: &Reader) -> anyhow::Result<()> {
     let projects = reader.get_projects()?;
+    let mut rows: Vec<Vec<String>> = Vec::new();
     for proj in projects {
         if proj.name.trim().is_empty() {
             continue;
         }
         let colored = format_colored(&proj.name, proj.color.as_deref());
-        println!("{colored}");
+        rows.push(vec![colored]);
     }
+    print_table(&["Project"], rows, Some("Projects"));
     Ok(())
 }
 
@@ -167,4 +173,98 @@ fn format_colored(name: &str, color_json: Option<&str>) -> String {
         out.push_str(&format!("{}", ch.to_string().color(colors[idx])));
     }
     out
+}
+
+fn visible_len(s: &str) -> usize {
+    let mut len = 0;
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\x1b' {
+            if chars.peek() == Some(&'[') {
+                chars.next();
+                while let Some(&next) = chars.peek() {
+                    chars.next();
+                    if next == 'm' {
+                        break;
+                    }
+                }
+                continue;
+            }
+        }
+        len += 1;
+    }
+    len
+}
+
+fn pad_cell(s: &str, width: usize) -> String {
+    let vlen = visible_len(s);
+    if vlen >= width {
+        s.to_string()
+    } else {
+        format!("{}{}", s, " ".repeat(width - vlen))
+    }
+}
+
+fn print_table(headers: &[&str], rows: Vec<Vec<String>>, title: Option<&str>) {
+    if let Some(t) = title {
+        println!("{t}");
+    }
+    let mut widths: Vec<usize> = headers.iter().map(|h| h.len()).collect();
+    for row in &rows {
+        for (i, cell) in row.iter().enumerate() {
+            let vlen = visible_len(cell);
+            if i < widths.len() {
+                widths[i] = widths[i].max(vlen);
+            } else {
+                widths.push(vlen);
+            }
+        }
+    }
+    let border = {
+        let mut s = String::from("+");
+        for w in &widths {
+            s.push_str(&"-".repeat(w + 2));
+            s.push('+');
+        }
+        s
+    };
+    let header_row = {
+        let mut s = String::from("|");
+        for (i, h) in headers.iter().enumerate() {
+            s.push(' ');
+            s.push_str(&pad_cell(h, widths[i]));
+            s.push_str(" |");
+        }
+        s
+    };
+    println!("{border}");
+    println!("{header_row}");
+    println!("{border}");
+    if rows.is_empty() {
+        let empty = {
+            let total_width = widths.iter().map(|w| w + 3).sum::<usize>() - 1;
+            let msg = "(no entries)";
+            let pad = total_width.saturating_sub(msg.len());
+            let left = pad / 2;
+            let right = pad - left;
+            format!("|{}{}{}|", " ".repeat(left), msg, " ".repeat(right))
+        };
+        println!("{empty}");
+    } else {
+        for row in rows {
+            let mut s = String::from("|");
+            for (i, cell) in row.iter().enumerate() {
+                s.push(' ');
+                s.push_str(&pad_cell(cell, widths[i]));
+                s.push_str(" |");
+            }
+            for i in row.len()..widths.len() {
+                s.push(' ');
+                s.push_str(&pad_cell("", widths[i]));
+                s.push_str(" |");
+            }
+            println!("{s}");
+        }
+    }
+    println!("{border}");
 }

@@ -5,11 +5,13 @@ use owo_colors::OwoColorize;
 use crate::{
     cli::{
         debug::DebugCommands,
+        display::handle_display,
         project::handle_project,
         record::{handle_start, handle_stop},
         tag::handle_tag,
         Cli, Commands,
     },
+    reader::Reader,
     utils::{hex_to_rgb, load_config},
 };
 
@@ -36,6 +38,10 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::Tag(args) => handle_tag(args, &actions)?,
         Commands::Project(args) => handle_project(args, &actions)?,
+        Commands::Display(args) => {
+            let reader = Reader::new(&db_path)?;
+            handle_display(args, &reader)?;
+        }
         Commands::Debug(args) => match args.command {
             DebugCommands::DisplayColors => {
                 let colors = [

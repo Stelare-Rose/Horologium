@@ -2,9 +2,10 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use crate::cli::{debug::DebugArgs, project::ProjectArgs, record::{StartArgs, StopArgs}, tag::TagArgs};
+use crate::cli::{debug::DebugArgs, display::DisplayArgs, project::ProjectArgs, record::{StartArgs, StopArgs}, tag::TagArgs};
 
 pub mod debug;
+pub mod display;
 pub mod project;
 pub mod record;
 pub mod tag;
@@ -29,5 +30,6 @@ pub enum Commands {
     Tag(TagArgs),
     Project(ProjectArgs),
     Debug(DebugArgs),
+    Display(DisplayArgs),
     Compile,
 }

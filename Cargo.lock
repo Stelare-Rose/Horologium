@@ -487,6 +487,7 @@ name = "horologium-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "dirs",
  "horologium-lib",
@@ -494,6 +495,7 @@ dependencies = [
  "owo-colors",
  "rusqlite",
  "serde",
+ "serde_json",
  "strsim",
  "strum",
  "tempfile",

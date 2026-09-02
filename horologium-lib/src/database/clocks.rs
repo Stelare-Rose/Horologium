@@ -15,6 +15,9 @@ impl Database {
     pub fn upsert_clock(&self, path: &PathBuf, sum: u64) -> anyhow::Result<()> {
         upsert_clock(&self.conn, path, sum)
     }
+    pub fn insert_gravestone(&self, path: &PathBuf) -> anyhow::Result<()>{
+        insert_gravestone(&self.conn, path)
+    }
     pub fn delete_clock(&self, path: &PathBuf) -> anyhow::Result<()> {
         delete_clock(&self.conn, path)
     }
@@ -65,6 +68,15 @@ pub fn upsert_clock(conn: &Connection, path: &PathBuf, sum: u64) -> anyhow::Resu
 
     conn.execute(UPSERT, params![path.to_str(), sum as i64])
         .context("Database Clock Upsert | failed to upsert clock")?;
+
+    Ok(())
+}
+
+fn insert_gravestone(conn: &Connection, path: &PathBuf) -> anyhow::Result<()>{
+    const GRAVESTONE: &str = include_str!("../../queries/clocks/gravestone.sql");
+
+    conn.execute(GRAVESTONE, params![path.to_str()])
+        .context("Database Clock Gravestone | failed to insert gravestone")?;
 
     Ok(())
 }

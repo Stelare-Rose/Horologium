@@ -33,20 +33,29 @@ async fn main() -> anyhow::Result<()> {
     info!(?watch_root, "init | watching for changes");
     let mut pending: HashSet<PathBuf> = HashSet::new();
     let mut drain_tick = interval(Duration::from_millis(200));
+    let mut needs_reconciliation: bool = false;
     loop {
         tokio::select! {
             Some(event) = rx.recv() => {
+                debug!(?event, "file watcher | found event");
                 if !EventKind::is_access(&event.kind) {
-                    for path in event.paths {
-                        if path.extension().and_then(|e| e.to_str()) != Some("eri") {
-                            continue;
+                    for path in &event.paths {
+                        if path.extension().and_then(|e| e.to_str()) == Some("eri") {
+                            pending.insert(path.clone());
+                        } else if path.extension().is_none() && !event.kind.is_create() {
+                            debug!("file watcher | reconciling..");
+                            needs_reconciliation = true;
                         }
-                        pending.insert(path);
                     }
                 }
-            }
+            },
                 _ = drain_tick.tick() => {
-                    if !pending.is_empty() {
+                    if needs_reconciliation {
+                        info!("compiling | compile (cascade)");
+                        reconcile_all(&db_path, &watch_root)?;
+                        needs_reconciliation = false;
+                        pending.clear();
+                    } else if !pending.is_empty() {
                         let batch: Vec<PathBuf> = pending.drain().collect();
                         for path in batch {
                             debug!(?path, "detected event at");

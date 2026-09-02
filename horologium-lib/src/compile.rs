@@ -43,21 +43,33 @@ fn compile_path(
     }
     let raw = read_to_string(path)?;
     let eri = parse(&raw).map_err(|s: String| anyhow!(s))?;
+    let parent = match path.parent() {
+        Some(p) => {
+            p
+        },
+        None => {
+            return Err(anyhow!("Compile Path | directory has no parent?"));
+        }
+    };
+        
     match eri.schema.as_str() {
         "horologium:record" => {
             let record: Record = eri.try_into()?;
             let fp = fingerprint(path)?;
             compile.database.upsert_record(record, path, fp)?;
+            compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         "horologium:tag" => {
             let tag: Tag = eri.try_into()?;
             let fp = fingerprint(path)?;
             compile.database.upsert_tag(tag, path, fp)?;
+            compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         "horologium:project" => {
             let project: Project = eri.try_into()?;
             let fp = fingerprint(path)?;
             compile.database.upsert_project(project, path, fp)?;
+            compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         other => {
             let dis_path = path.display();

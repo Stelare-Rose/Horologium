@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local, Utc};
 use clap::{Args, Subcommand};
 use horologium_lib::types::{Color, Mode};
 use owo_colors::OwoColorize;
@@ -66,13 +66,17 @@ pub fn display_timeline(
         }
         let name = raw_name.to_string();
         let start_str = DateTime::from_timestamp_millis(r.start)
-            .map(|dt| dt.to_rfc3339())
+            .map(|dt| dt.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string())
             .unwrap_or_else(|| r.start.to_string());
         let end_str = r
             .end
             .and_then(DateTime::from_timestamp_millis)
-            .map(|dt| dt.to_rfc3339())
+            .map(|dt| dt.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S").to_string())
             .unwrap_or_else(|| "-".to_string());
+        let duration_str = {
+            let end_ms = r.end.unwrap_or_else(|| Utc::now().timestamp_millis());
+            format_duration(r.start, end_ms)
+        };
         let tags_str = match &r.tag_ids {
             Some(ids) if !ids.trim().is_empty() => {
                 let parts: Vec<String> = ids
@@ -103,9 +107,13 @@ pub fn display_timeline(
             }
             _ => "-".to_string(),
         };
-        rows.push(vec![name, start_str, end_str, tags_str, project_str]);
+        rows.push(vec![name, start_str, end_str, duration_str, tags_str, project_str]);
     }
-    print_table(&["Name", "Start", "End", "Tags", "Projects"], rows, Some("Records"));
+    print_table(
+        &["Name", "Start", "End", "Duration", "Tags", "Projects"],
+        rows,
+        Some("Records"),
+    );
     Ok(())
 }
 
@@ -135,6 +143,27 @@ pub fn display_projects(reader: &Reader) -> anyhow::Result<()> {
     }
     print_table(&["Project"], rows, Some("Projects"));
     Ok(())
+}
+
+fn format_duration(start_ms: i64, end_ms: i64) -> String {
+    let diff = end_ms - start_ms;
+    if diff < 0 {
+        return "-".to_string();
+    }
+    let total_secs = diff / 1000;
+    let days = total_secs / 86400;
+    let hours = (total_secs % 86400) / 3600;
+    let minutes = (total_secs % 3600) / 60;
+    let seconds = total_secs % 60;
+    if days > 0 {
+        format!("{days}d {hours}h {minutes}m {seconds}s")
+    } else if hours > 0 {
+        format!("{hours}h {minutes}m {seconds}s")
+    } else if minutes > 0 {
+        format!("{minutes}m {seconds}s")
+    } else {
+        format!("{seconds}s")
+    }
 }
 
 fn parse_datetime(s: &str) -> anyhow::Result<DateTime<Utc>> {

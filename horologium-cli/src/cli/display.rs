@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{Args, Subcommand};
 use horologium_lib::types::{Color, Mode};
 use owo_colors::OwoColorize;
@@ -26,18 +26,55 @@ pub struct RecordsArgs {
     pub start: Option<String>,
     #[arg(long)]
     pub end: Option<String>,
+    #[arg(long, help = "Show records from today (local timezone)")]
+    pub today: bool,
+    #[arg(value_name = "FILTER", help = "Optional filter, e.g. 'today'")]
+    pub filter: Option<String>,
 }
 
 pub fn handle_display(args: DisplayArgs, reader: &Reader) -> anyhow::Result<()> {
     match args.command {
         DisplayCommands::Records(r) => {
-            let start = r.start.as_deref().map(parse_datetime).transpose()?;
-            let end = r.end.as_deref().map(parse_datetime).transpose()?;
-            display(reader, start, end)
+            let filter_is_today = r.filter.as_deref() == Some("today");
+            let is_today = r.today || filter_is_today;
+            if r.today && r.filter.is_some() && !filter_is_today {
+                anyhow::bail!("unknown filter '{}', expected 'today'", r.filter.unwrap());
+            }
+            if is_today {
+                if r.start.is_some() || r.end.is_some() {
+                    anyhow::bail!("--start/--end cannot be used with 'today'");
+                }
+                let (start, end) = today_bounds();
+                display(reader, Some(start), Some(end))
+            } else {
+                if let Some(f) = r.filter {
+                    anyhow::bail!("unknown filter '{f}', expected 'today'");
+                }
+                let start = r.start.as_deref().map(parse_datetime).transpose()?;
+                let end = r.end.as_deref().map(parse_datetime).transpose()?;
+                display(reader, start, end)
+            }
         }
         DisplayCommands::Tags => display_tags(reader),
         DisplayCommands::Projects => display_projects(reader),
     }
+}
+
+fn today_bounds() -> (DateTime<Utc>, DateTime<Utc>) {
+    let today = Local::now().date_naive();
+    let start_naive = today.and_hms_opt(0, 0, 0).unwrap();
+    let next_day = today.checked_add_days(chrono::Days::new(1)).unwrap();
+    let next_start_naive = next_day.and_hms_opt(0, 0, 0).unwrap();
+    let resolve = |naive: chrono::NaiveDateTime| match naive.and_local_timezone(Local) {
+        chrono::MappedLocalTime::Single(dt) => dt,
+        chrono::MappedLocalTime::Ambiguous(a, _) => a,
+        chrono::MappedLocalTime::None => Local.from_local_datetime(&naive).earliest().unwrap(),
+    };
+    let start_local = resolve(start_naive);
+    let next_start_local = resolve(next_start_naive);
+    let start_utc = start_local.with_timezone(&Utc);
+    let end_utc = next_start_local.with_timezone(&Utc) - chrono::TimeDelta::milliseconds(1);
+    (start_utc, end_utc)
 }
 
 pub fn display(

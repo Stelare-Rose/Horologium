@@ -2,7 +2,7 @@ use anyhow::{Context, anyhow};
 use horologium_lib::{database::Database, types::{Color, Colorscheme, ProjectId, TagId}};
 use owo_colors::Rgb;
 use serde::{Deserialize, Serialize};
-use std::{env, fs, io, path::PathBuf, process::Command};
+use std::{collections::HashSet, env, fs, io, path::PathBuf, process::Command};
 use strum::IntoEnumIterator;
 use tempfile::NamedTempFile;
 
@@ -23,23 +23,29 @@ pub fn open_editor() -> anyhow::Result<String> {
 
 pub fn resolve_tags(candidates: Vec<String>, database: &Database) -> anyhow::Result<Vec<TagId>> {
     let all_tags: Vec<TagId> = database.get_all_tags()?;
+    let mut seen: HashSet<String> = HashSet::new();
     let mut results: Vec<TagId> = Vec::new();
     for c in candidates {
         if let Some(tag) = all_tags.iter().find(|tag| tag.name == c) {
-            results.push(TagId { id: tag.id.clone(), name: tag.name.clone() });
+            if seen.insert(tag.id.clone()) {
+                results.push(TagId { id: tag.id.clone(), name: tag.name.clone() });
+            }
+        } else {
+            let matches: Vec<_> = all_tags.iter()
+                .filter(|TagId { name, .. }| strsim::jaro_winkler(name, &c) > 0.8)
+                .collect();
+            match matches.len() {
+                0 => Err(anyhow!("unknown tag: {c}")),
+                1 => {
+                    if seen.insert(matches[0].id.clone()) {
+                        results.push(TagId { id: matches[0].id.clone(), name: matches[0].name.clone() });
+                    }
+                    Ok(())
+                },
+                _ => Err(anyhow!("ambiguous tag {c}: matches {:?}", matches.iter().map(|TagId { name, .. }| name).collect::<Vec<_>>())),
+            }?;
         }
-        let matches: Vec<_> = all_tags.iter()
-            .filter(|TagId { name, .. }| strsim::jaro_winkler(name, &c) > 0.8)
-            .collect();
-        match matches.len() {
-            0 => Err(anyhow!("unknown tag: {c}")),
-            1 => {
-                results.push(TagId { id: matches[0].id.clone(), name: matches[0].name.clone() });
-                Ok(())
-            },
-            _ => Err(anyhow!("ambiguous tag {c}: matches {:?}", matches.iter().map(|TagId { name, .. }| name).collect::<Vec<_>>())),
-        }?;
-    };
+    }
     Ok(results)
 }
 

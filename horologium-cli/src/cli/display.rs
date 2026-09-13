@@ -97,9 +97,9 @@ pub fn display_timeline(
         reader.get_tag_map().unwrap_or_default();
     let mut rows: Vec<Vec<String>> = Vec::new();
     for r in records {
-        let raw_name = r.name.as_deref().unwrap_or("");
+        let mut raw_name = r.name.as_deref().unwrap_or("");
         if raw_name.trim().is_empty() {
-            continue;
+            raw_name = "Untracked";
         }
         let name = raw_name.to_string();
         let start_str = DateTime::from_timestamp_millis(r.start)

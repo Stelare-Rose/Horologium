@@ -55,7 +55,7 @@
           description = "Horologium service";
           wantedBy = [ "default.target" ];
           serviceConfig = {
-            ExecStart = "${self.packages.${pkgs.system}.horologium-svc}/bin/horologium-svc";
+            ExecStart = "${self.packages.${pkgs.stdenv.hostPlatform.system}.horologium-svc}/bin/horologium-svc";
             Restart = "always";
           };
         };

@@ -15,7 +15,6 @@ async fn main() -> anyhow::Result<()> {
         .context("init | could not resolve cache dir")?
         .join("Horologium")
         .join("main.db");
-    reconcile_all(&db_path, &watch_root).context("init | startup compilation failed")?;
 
     let database: Database = Database::new(&db_path)?;
     let compile: Compile = Compile::new(watch_root.clone(), database)?;
@@ -30,7 +29,9 @@ async fn main() -> anyhow::Result<()> {
         .watch(&watch_root, RecursiveMode::Recursive)
         .with_context(|| format!("init | failed to watch {watch_root:?}"))?;
 
+    reconcile_all(&db_path, &watch_root).context("init | startup compilation failed")?;
     info!(?watch_root, "init | watching for changes");
+
     let mut pending: HashSet<PathBuf> = HashSet::new();
     let mut drain_tick = interval(Duration::from_millis(200));
     let mut needs_reconciliation: bool = false;
@@ -39,6 +40,9 @@ async fn main() -> anyhow::Result<()> {
             Some(event) = rx.recv() => {
                 debug!(?event, "file watcher | found event");
                 if !EventKind::is_access(&event.kind) {
+                    if event.need_rescan() {
+                        needs_reconciliation = true;
+                    }
                     for path in &event.paths {
                         if path.extension().and_then(|e| e.to_str()) == Some("eri") {
                             pending.insert(path.clone());
@@ -54,7 +58,6 @@ async fn main() -> anyhow::Result<()> {
                         info!("compiling | compile (cascade)");
                         reconcile_all(&db_path, &watch_root)?;
                         needs_reconciliation = false;
-                        pending.clear();
                     } else if !pending.is_empty() {
                         let batch: Vec<PathBuf> = pending.drain().collect();
                         for path in batch {

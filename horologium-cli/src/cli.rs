@@ -11,6 +11,7 @@ pub mod record;
 pub mod tag;
 
 #[derive(Parser)]
+#[command(version)]
 #[command(name = "horologium", about = "A time tracker")]
 pub struct Cli {
     #[command(subcommand)]

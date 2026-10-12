@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
-use rusqlite::{Connection, params, types::Null};
+use rusqlite::{Connection, params, types::Null, OptionalExtension};
 
 use crate::types::{Event, Record};
 
@@ -22,6 +22,9 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
     const UPSERT_RECORD: &str = include_str!("../../queries/records/upsert.sql");
     const INSERT_RECORD_TAG: &str = include_str!("../../queries/records/insert-tags.sql");
     const CLEAN_TAG: &str = include_str!("../../queries/records/clean-tags.sql");
+
+    // We always try to remove record here, see Issue #1
+    remove_record(conn, path)?;
 
     let record_id = record.id.0;
     let start_epoch = record.start.timestamp_millis();
@@ -73,7 +76,7 @@ pub fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
     const DELETE_STITCH: &str = include_str!("../../queries/records/delete-stitch.sql");
     const DELETE_RECORD: &str = include_str!("../../queries/records/delete.sql");
 
-    let (id, start): (String, i64) = conn.query_row(
+    let Some((id, start)): Option<(String, i64)> = conn.query_row(
         GET_START_AND_ID,
         params![path.to_str()],
         |row| {
@@ -81,7 +84,9 @@ pub fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
             let start: i64 = row.get(1)?;
             Ok((id, start))
         },
-    )?;
+    ).optional()? else { 
+        return Ok(()); // this is a valid outcome.
+    };
 
     conn.execute(DELETE_STITCH, params![start, id])?;
     conn.execute(CLEAN_TAGS, params![id])?;

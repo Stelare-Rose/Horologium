@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS Records (
 	fingerprint INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_records_start ON Records(start);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_records_path ON Records(path);
+CREATE INDEX IF NOT EXISTS idx_records_projects ON Records(project);

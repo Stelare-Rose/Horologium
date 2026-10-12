@@ -15,7 +15,7 @@ pub use clocks::{upsert_clock, delete_clock};
 pub use projects::{upsert_project, remove_project};
 pub use tags::{upsert_tag, remove_tag};
 
-const DATABASE_VERSION_CODE: &str = "v1.0.1";
+const DATABASE_VERSION_CODE: &str = "v1.0.2";
 pub struct Database {
     conn: Connection
 }

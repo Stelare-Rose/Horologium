@@ -5,6 +5,7 @@ use strum_macros::{Display, EnumIter, EnumString};
 mod record;
 mod tags;
 mod project;
+mod quotas;
 
 // Do not @ me about bad encapsulation. fix it yourself
 pub struct RecordId(pub String);
@@ -52,6 +53,38 @@ pub struct Project {
     pub color: Vec<Color>,
     pub body: Option<String>
 }
+
+pub struct Quotas {
+    pub id: String,
+    pub name: Option<String>,
+    pub rule: QuotaRule,
+    pub state: QuotaState,
+    pub target: QuotaTarget,
+}
+
+pub struct QuotaRule {
+    pub length: QuotaRuleLength,
+    pub quota_type: QuotaRuleType,
+    pub secs: i32,
+}
+
+pub enum QuotaRuleLength {
+    Day, Week, Month
+}
+
+pub enum QuotaRuleType {
+    Max, Min
+}
+
+pub enum QuotaState {
+    Active, Inactive
+}
+
+pub enum QuotaTarget {
+    Tag { id: TagId },
+    Project { id: ProjectId }
+}
+
 #[derive(Hash)]
 pub struct Fingerprint {
     pub size: u64,

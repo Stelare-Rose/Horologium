@@ -50,6 +50,7 @@ fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     const CREATE_RECORDS: &str = include_str!("../schema/records.sql");
     const CREATE_PROJECTS: &str = include_str!("../schema/projects.sql");
     const CREATE_TAGS: &str = include_str!("../schema/tags.sql");
+    const CREATE_QUOTAS: &str = include_str!("../schema/quotas.sql");
     const CREATE_CLOCKS: &str = include_str!("../schema/clocks.sql");
     const CREATE_METADATA: &str = include_str!("../schema/metadata.sql");
     const CREATE_VIEWS: &str = include_str!("../schema/views.sql");
@@ -60,6 +61,7 @@ fn init_schema(conn: &Connection) -> anyhow::Result<()>{
     conn.execute_batch(CREATE_RECORDS)?;
     conn.execute_batch(CREATE_PROJECTS)?;
     conn.execute_batch(CREATE_TAGS)?;
+    conn.execute_batch(CREATE_QUOTAS)?;
     conn.execute_batch(CREATE_CLOCKS)?;
     conn.execute_batch(CREATE_METADATA)?;
     conn.execute_batch(CREATE_VIEWS)?;

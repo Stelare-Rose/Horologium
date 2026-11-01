@@ -15,9 +15,11 @@
       };
       craneLib = crane.mkLib pkgs;
 
+      androidBuildToolVersion = "34.0.0";
+
       android = pkgs.androidenv.composeAndroidPackages {
         platformVersions = [ "35" ];
-        buildToolsVersions = [ "35.0.0" ];
+        buildToolsVersions = [ androidBuildToolVersion ];
         includeNDK = true;
         abiVersions = [ "x86_64" ];
         ndkVersions = [ "27.0.12077973" ];
@@ -36,7 +38,7 @@
         ANDROID_HOME = "${android.androidsdk}/libexec/android-sdk";
         ANDROID_SDK_ROOT = "${android.androidsdk}/libexec/android-sdk";
         ANDROID_NDK_HOME = "${android.androidsdk}/libexec/android-sdk/ndk-bundle";
-        GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${android.androidsdk}/libexec/android-sdk/build-tools/35.0.0/aapt2";
+        GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${android.androidsdk}/libexec/android-sdk/build-tools/${androidBuildToolVersion}/aapt2";
         JAVA_HOME = pkgs.jdk17.home;
         name = "horologium";
         packages = with pkgs; [

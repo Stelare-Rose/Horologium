@@ -8,9 +8,21 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
-        config.allowUnfree = true;
+        config = {
+          allowUnfree = true;
+          android_sdk.accept_license = true;
+        };
       };
       craneLib = crane.mkLib pkgs;
+
+      android = pkgs.androidenv.composeAndroidPackages {
+        platformVersions = [ "35" ];
+        buildToolsVersions = [ "35.0.0" ];
+        includeNDK = true;
+        abiVersions = [ "x86_64" ];
+        ndkVersions = [ "27.0.12077973" ];
+        cmakeVersions = [ "3.22.1" ];
+      };
 
       sqlFilter = path: _type: builtins.match ".*\\.sql$" path != null;
       filter = path: type: (sqlFilter path type) || (craneLib.filterCargoSources path type);
@@ -21,12 +33,21 @@
     in
       {
       devShells.${system}.default = pkgs.mkShell {
+        ANDROID_HOME = "${android.androidsdk}/libexec/android-sdk";
+        ANDROID_SDK_ROOT = "${android.androidsdk}/libexec/android-sdk";
+        ANDROID_NDK_HOME = "${android.androidsdk}/libexec/android-sdk/ndk-bundle";
+        GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${android.androidsdk}/libexec/android-sdk/build-tools/35.0.0/aapt2";
+        JAVA_HOME = pkgs.jdk17.home;
         name = "horologium";
         packages = with pkgs; [
           rustc
           cargo
           gcc
           rust-analyzer
+          jdk17 
+          gradle 
+          cargo-ndk 
+          android.androidsdk
         ];
         shellHook = "tmux -L horologium new-session -A -s horologium";
       };

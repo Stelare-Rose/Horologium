@@ -50,6 +50,8 @@
           gradle 
           cargo-ndk 
           android.androidsdk
+          kotlin-language-server
+          ktlint
         ];
         shellHook = "tmux -L horologium new-session -A -s horologium";
       };

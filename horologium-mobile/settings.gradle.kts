@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "myapp"
+rootProject.name = "Horologium"
 include(":app")

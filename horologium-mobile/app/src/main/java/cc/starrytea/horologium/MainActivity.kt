@@ -1,4 +1,4 @@
-package com.example.myapp
+package cc.starrytea.horologium 
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Home(modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Hello, Compose!", style = MaterialTheme.typography.headlineMedium)
+        Text("Hello, World!", style = MaterialTheme.typography.headlineMedium)
     }
 }
 

@@ -26,8 +26,11 @@
         cmakeVersions = [ "3.22.1" ];
       };
 
+      mobileDir = ./horologium-mobile;
       sqlFilter = path: _type: builtins.match ".*\\.sql$" path != null;
-      filter = path: type: (sqlFilter path type) || (craneLib.filterCargoSources path type);
+      filter = path: type:
+        !(pkgs.lib.hasPrefix (toString mobileDir) (toString path))
+        && ((sqlFilter path type) || (craneLib.filterCargoSources path type));
       src = pkgs.lib.cleanSourceWith { src = ./.; inherit filter; };
 
       horologiumCliToml = fromTOML (builtins.readFile ./horologium-cli/Cargo.toml);

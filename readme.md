@@ -50,9 +50,9 @@ To see it in action before installing, there's a [demo recording](https://astrol
 Horologium is split into three parts:
  - Command Line Interface  
  The CLI is written in Rust, and is the form that the prototype currently takes. The CLI enables basic recording, tagging, and project assignment, with basic queries on the resulting event log.
- - Background Service
+ - Background Service  
  The service is written in Rust, and handles generation of the event log and verification of the cache.
- - Horologium-Lib
+ - Horologium-Lib  
  A Shared Library written in Rust used to standardize commonly used methods across the CLI and Service. This is meant for later development into Android and Desktop interfaces.
 
 The data is intentionally a unidirectional cycle:

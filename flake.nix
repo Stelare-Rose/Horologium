@@ -1,19 +1,28 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     crane.url = "github:ipetkov/crane";
   };
-  outputs = { self, nixpkgs, crane }:
+  outputs = { self, rust-overlay, nixpkgs, crane }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
+        overlays = [ (import rust-overlay) ];
         config = {
           allowUnfree = true;
           android_sdk.accept_license = true;
         };
       };
       craneLib = crane.mkLib pkgs;
+
+      rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+        targets = [ "aarch64-linux-android" "x86_64-linux-android" ];
+      };
 
       androidBuildToolVersion = "34.0.0";
 
@@ -45,13 +54,12 @@
         JAVA_HOME = pkgs.jdk17.home;
         name = "horologium";
         packages = with pkgs; [
-          rustc
-          cargo
           gcc
           rust-analyzer
           jdk17 
           gradle 
           cargo-ndk 
+          rustToolchain
           android.androidsdk
           kotlin-language-server
           ktlint

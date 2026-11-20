@@ -3,5 +3,5 @@ resolver = "2"
 members = [
   "horologium-lib",
   "horologium-cli",
-  "horologium-svc",
+  "horologium-svc", "horologium-android",
 ]

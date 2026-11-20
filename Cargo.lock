@@ -483,6 +483,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
+name = "horologium-android"
+version = "0.1.0"
+
+[[package]]
 name = "horologium-cli"
 version = "0.1.0"
 dependencies = [
@@ -511,6 +515,7 @@ dependencies = [
  "chrono",
  "constellation-eridanus",
  "criterion",
+ "log",
  "nanoid",
  "rusqlite",
  "rustc-hash",
@@ -713,9 +718,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.33"
+version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
+checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
 
 [[package]]
 name = "memchr"

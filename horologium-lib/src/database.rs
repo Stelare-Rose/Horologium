@@ -1,7 +1,7 @@
 use std::{fs, io::ErrorKind, path::{Path, PathBuf}};
 
 use anyhow::{Context, anyhow};
-use rusqlite::{Connection, Transaction, params};
+use rusqlite::{Connection, Transaction, params, Error as SqlErr};
 
 mod records;
 mod clocks;
@@ -29,15 +29,21 @@ impl Database {
         let mut conn = Connection::open(db_path)
             .context("Database Init | could not open database")?;
         // Current Migration Strategy: Drop the database.
-        let version = conn.query_one(QUERY_VERSION, [], |row| {
-            let code: String = row.get(1)?;
-            Ok(code)
-        }).unwrap_or("invalid version code".to_string());
-        if DATABASE_VERSION_CODE != version {
-            println!("Database Init | Detected Version Code Mismatch. {version} and {DATABASE_VERSION_CODE}");
-            reset_db(db_path)?;
-            conn = Connection::open(db_path)
-                .context("Database Init | could not open database")?;
+        let stored: Option<String> = match conn.query_row(QUERY_VERSION, [], |row| row.get::<_, String>(1)) {
+            Ok(v) => Some(v),
+            Err(SqlErr::QueryReturnedNoRows) => None,
+            Err(SqlErr::SqliteFailure(_, Some(msg))) if msg.contains("no such table") => None,
+            Err(e) => return Err(e).context("Database Init | could not read version"),
+        };
+
+        if let Some(v) = &stored {
+            if v != DATABASE_VERSION_CODE {
+                log::warn!("Database Init | version mismatch: {v} vs {DATABASE_VERSION_CODE}, resetting");
+                drop(conn);
+                reset_db(db_path)?;
+                conn = Connection::open(db_path)
+                    .context("Database Init | could not open database")?;
+            }
         }
         init_schema(&conn)?;
         Ok(Database { conn })

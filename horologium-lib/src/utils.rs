@@ -31,6 +31,19 @@ pub fn fingerprint(path: &PathBuf) -> anyhow::Result<u64> {
     Ok(hasher.finish())
 }
 
+#[cfg(target_os = "android")]
+pub fn get_stat(path: &PathBuf) -> anyhow::Result<Fingerprint> {
+    let meta = fs::metadata(path)?;
+    Ok(Fingerprint { 
+        size: meta.size(), 
+        mtime: meta.mtime(),
+        mtime_nsec: meta.mtime_nsec(),
+        ctime: 0, 
+        ctime_nsec: 0
+    })
+}
+
+#[cfg(not(target_os = "android"))]
 pub fn get_stat(path: &PathBuf) -> anyhow::Result<Fingerprint> {
     let meta = fs::metadata(path)?;
     Ok(Fingerprint { 

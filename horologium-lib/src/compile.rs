@@ -3,7 +3,7 @@ use std::{fs::{create_dir_all, read_to_string}, path::PathBuf};
 use anyhow::{Context, anyhow};
 use constellation_eridanus::parse;
 
-use crate::{compile::utils::delete_path_from_any_table, database::Database, types::{Project, Record, Tag}, utils::fingerprint};
+use crate::{compile::utils::delete_path_from_any_table, database::Database, types::{Project, Record, Tag}, utils::{fingerprint, normalize}};
 
 mod utils;
 mod records;
@@ -35,15 +35,16 @@ fn compile_path(
     compile: &Compile,
     path: &PathBuf
 ) -> anyhow::Result<()> {
-    if path.extension().and_then(|e| e.to_str()) != Some("eri"){
+    let normalized_path = normalize(&compile.base_path, path)?;
+    if normalized_path.extension().and_then(|e| e.to_str()) != Some("eri"){
         return Err(anyhow!("Compile Path | file is not an eri file"));
     }
-    if !path.is_dir() && !path.exists() {
+    if !normalized_path.is_dir() && !normalized_path.exists() {
         return delete_path_from_any_table(compile, path);
     }
-    let raw = read_to_string(path)?;
+    let raw = read_to_string(&normalized_path)?;
     let eri = parse(&raw).map_err(|s: String| anyhow!(s))?;
-    let parent = match path.parent() {
+    let parent = match normalized_path.parent() {
         Some(p) => {
             p
         },
@@ -55,24 +56,24 @@ fn compile_path(
     match eri.schema.as_str() {
         "horologium:record" => {
             let record: Record = eri.try_into()?;
-            let fp = fingerprint(path)?;
-            compile.database.upsert_record(record, path, fp)?;
+            let fp = fingerprint(&normalized_path)?;
+            compile.database.upsert_record(record, &normalized_path, fp)?;
             compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         "horologium:tag" => {
             let tag: Tag = eri.try_into()?;
-            let fp = fingerprint(path)?;
-            compile.database.upsert_tag(tag, path, fp)?;
+            let fp = fingerprint(&normalized_path)?;
+            compile.database.upsert_tag(tag, &normalized_path, fp)?;
             compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         "horologium:project" => {
             let project: Project = eri.try_into()?;
-            let fp = fingerprint(path)?;
-            compile.database.upsert_project(project, path, fp)?;
+            let fp = fingerprint(&normalized_path)?;
+            compile.database.upsert_project(project, &normalized_path, fp)?;
             compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         other => {
-            let dis_path = path.display();
+            let dis_path = normalized_path.display();
             return Err(anyhow!("Compile Path | eri in path {dis_path} is not a valid schema. found schema {other}"))
         }
     };

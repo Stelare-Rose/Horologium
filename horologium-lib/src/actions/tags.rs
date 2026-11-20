@@ -5,7 +5,7 @@ use sanitize_filename::sanitize;
 use anyhow::anyhow;
 use nanoid::nanoid;
 
-use crate::types::{Color, Tag, TagId};
+use crate::{types::{Color, Tag, TagId}, utils::normalize};
 
 use super::Actions;
 
@@ -55,6 +55,7 @@ fn modify_tags(
     from: &PathBuf,
     tags: Tag,
 ) -> anyhow::Result<TagId> {
+    let from = normalize(base_path, from)?;
     let path = base_path.join("Tags");
     fs::create_dir_all(&path)?;
 

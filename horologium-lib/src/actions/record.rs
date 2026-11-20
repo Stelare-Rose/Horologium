@@ -5,7 +5,7 @@ use constellation_eridanus::{Eri, serialize};
 use sanitize_filename::sanitize;
 use anyhow::anyhow;
 
-use crate::{types::{Event, ProjectId, Record, RecordId, TagId}, utils::{event_path, uuidv7_from_datetime}};
+use crate::{types::{Event, ProjectId, Record, RecordId, TagId}, utils::{event_path, normalize, uuidv7_from_datetime}};
 
 use super::Actions;
 
@@ -98,6 +98,7 @@ fn modify_record (
     from: &PathBuf,
     record: Record
 ) -> anyhow::Result<RecordId> {
+    let from = normalize(base_path, from)?;
     let path = event_path(base_path, &record.start.date_naive());
     fs::create_dir_all(&path)?;
 
@@ -123,7 +124,7 @@ fn modify_record (
     let serialized: String = serialize(&e).map_err(|e: String| anyhow!(e))?;
 
     // Check if we need to rewrite a file
-    if file_path == *from {
+    if file_path == from {
         // we don't
         fs::write(file_path, serialized)?;
     } else {

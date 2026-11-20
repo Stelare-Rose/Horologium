@@ -3,6 +3,7 @@ use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::hash::{Hash, Hasher};
 
+use anyhow::{Context, anyhow};
 use chrono::{DateTime, NaiveDate, Utc};
 use rustc_hash::FxHasher;
 use uuid::{NoContext, Timestamp, Uuid};
@@ -39,4 +40,15 @@ pub fn get_stat(path: &PathBuf) -> anyhow::Result<Fingerprint> {
         ctime: meta.ctime(), 
         ctime_nsec: meta.ctime_nsec()
     })
+}
+
+pub fn normalize(base_path: &Path, path: &Path) -> anyhow::Result<PathBuf>{
+    let name = path.file_name().ok_or_else(|| anyhow!("Normalize | no file name"))?;
+    let parent = path.parent().ok_or_else(|| anyhow!("Normalize | no parent"))?.canonicalize().context("Normalize | could not canonicalize parent")?;
+
+    let full = parent.join(name);
+    if !full.starts_with(base_path) {
+        return Err(anyhow!("Normalize | path is outside base path? {}", full.display()));
+    } 
+    Ok(full)
 }

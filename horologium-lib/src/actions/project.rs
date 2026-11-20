@@ -6,7 +6,7 @@ use sanitize_filename::sanitize;
 use anyhow::anyhow;
 use nanoid::nanoid;
 
-use crate::{types::{Color, Project, ProjectId, ProjectState}};
+use crate::{types::{Color, Project, ProjectId, ProjectState}, utils::normalize};
 
 use super::Actions;
 
@@ -60,7 +60,8 @@ fn modify_project(
     from: &PathBuf,
     project: Project
 ) -> anyhow::Result<ProjectId> {
-    let path = base_path.join("Projects");
+    let from = normalize(base_path, from)?;
+    let path = &base_path.join("Projects");
     fs::create_dir_all(&path)?;
 
     let sanitized = sanitize(&project.name);
@@ -80,7 +81,7 @@ fn modify_project(
 
     fs::write(&file_path, serialized)?;
 
-    if file_path != *from {
+    if file_path != from {
         fs::remove_file(from)?;
     };
 
@@ -92,6 +93,7 @@ fn complete_project(
     device_id: &str,
     target: &PathBuf
 ) -> anyhow::Result<ProjectId> {
+    let target = normalize(base_path, target)?;
     let path = base_path.join("Projects");
     fs::create_dir_all(&path)?;
 

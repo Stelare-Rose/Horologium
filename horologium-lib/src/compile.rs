@@ -39,9 +39,10 @@ fn compile_path(
     if normalized_path.extension().and_then(|e| e.to_str()) != Some("eri"){
         return Err(anyhow!("Compile Path | file is not an eri file"));
     }
-    if !normalized_path.is_dir() && !normalized_path.exists() {
+    if !normalized_path.is_dir() && !normalized_path.try_exists()? {
         return delete_path_from_any_table(compile, path);
     }
+    let fp = fingerprint(&normalized_path)?;
     let raw = read_to_string(&normalized_path)?;
     let eri = parse(&raw).map_err(|s: String| anyhow!(s))?;
     let parent = match normalized_path.parent() {
@@ -56,19 +57,16 @@ fn compile_path(
     match eri.schema.as_str() {
         "horologium:record" => {
             let record: Record = eri.try_into()?;
-            let fp = fingerprint(&normalized_path)?;
             compile.database.upsert_record(record, &normalized_path, fp)?;
             compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         "horologium:tag" => {
             let tag: Tag = eri.try_into()?;
-            let fp = fingerprint(&normalized_path)?;
             compile.database.upsert_tag(tag, &normalized_path, fp)?;
             compile.database.insert_gravestone(&parent.to_path_buf())?;
         },
         "horologium:project" => {
             let project: Project = eri.try_into()?;
-            let fp = fingerprint(&normalized_path)?;
             compile.database.upsert_project(project, &normalized_path, fp)?;
             compile.database.insert_gravestone(&parent.to_path_buf())?;
         },

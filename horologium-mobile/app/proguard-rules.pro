@@ -1,3 +1,2 @@
-# Add project specific ProGuard rules here.
-# When Rust JNI is added, keep native method bindings:
-# -keepclasseswithmembernames class * { native <methods>; }
+-keep class com.sun.jna.** { *; }
+-keep class cc.starrytea.horologium.** { *; }

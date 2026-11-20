@@ -5,14 +5,18 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    kotlin-lsp = {
+      url = "github:loss-and-quick/kotlin-lsp.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     crane.url = "github:ipetkov/crane";
   };
-  outputs = { self, rust-overlay, nixpkgs, crane }:
+  outputs = { self, rust-overlay, kotlin-lsp, nixpkgs, crane }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ (import rust-overlay) ];
+        overlays = [ (import rust-overlay) kotlin-lsp.overlays.default ];
         config = {
           allowUnfree = true;
           android_sdk.accept_license = true;
@@ -21,13 +25,17 @@
       craneLib = crane.mkLib pkgs;
 
       rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-        targets = [ "aarch64-linux-android" "x86_64-linux-android" ];
+        targets = [ 
+          "aarch64-linux-android" 
+          "armv7-linux-androideabi" 
+          "x86_64-linux-android" 
+        ];
       };
 
-      androidBuildToolVersion = "34.0.0";
+      androidBuildToolVersion = "35.0.0";
 
       android = pkgs.androidenv.composeAndroidPackages {
-        platformVersions = [ "35" ];
+        platformVersions = [ "36" ];
         buildToolsVersions = [ androidBuildToolVersion ];
         includeNDK = true;
         abiVersions = [ "x86_64" ];
@@ -61,7 +69,7 @@
           cargo-ndk 
           rustToolchain
           android.androidsdk
-          kotlin-language-server
+          pkgs.kotlin-lsp
           ktlint
         ];
         shellHook = "tmux -L horologium new-session -A -s horologium";

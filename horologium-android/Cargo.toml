@@ -3,4 +3,11 @@ name = "horologium-android"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "horologium_lib_android"
+crate-type = ["cdylib"]
+
 [dependencies]
+anyhow = "1.0.104"
+horologium-lib = { path = "../horologium-lib" }
+jni = "0.21"

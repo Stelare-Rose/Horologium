@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS Records (
   id TEXT PRIMARY KEY,
   name TEXT,
-	status TEXT CHECK (status IN ('active', 'inactive')),
-	start INTEGER NOT NULL,
-	end INTEGER,
-	project TEXT REFERENCES Projects(id),
-	path TEXT,
-	fingerprint INTEGER,
-  content_hash BLOB,
+  status TEXT CHECK (status IN ('active', 'inactive')),
+  start INTEGER NOT NULL,
+  end INTEGER,
+  project TEXT REFERENCES Projects(id),
+  path TEXT,
+  fingerprint INTEGER,
+  content_hash BLOB
 );
 CREATE INDEX IF NOT EXISTS idx_records_start ON Records(start);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_records_path ON Records(path);

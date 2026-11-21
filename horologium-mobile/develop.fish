@@ -24,7 +24,7 @@ end
 ./gradlew $task -t --console=plain 2>&1 | while read -l line
     echo $line
     if string match -q "*BUILD SUCCESSFUL*" -- $line
-        adb shell monkey -p $pkg -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+         adb shell am start -S -n $pkg/.MainActivity 1 >/dev/null 2>&1
         echo "▶ relaunched $pkg"
     end
 end

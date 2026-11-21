@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,16 +27,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import cc.starrytea.horologium.data.Store
 import cc.starrytea.horologium.model.Project
 import cc.starrytea.horologium.model.Record
+import cc.starrytea.horologium.ui.components.AppIcon
 import cc.starrytea.horologium.ui.components.Chip
 import cc.starrytea.horologium.ui.components.ChipSize
 import cc.starrytea.horologium.ui.components.TagChip
 import cc.starrytea.horologium.ui.formatElapsed
 import cc.starrytea.horologium.ui.rememberNow
 import cc.starrytea.horologium.ui.theme.Borders
+import cc.starrytea.horologium.ui.theme.IconSize
 import cc.starrytea.horologium.ui.theme.Magnolia
 import cc.starrytea.horologium.ui.theme.MaxMeasure
 import cc.starrytea.horologium.ui.theme.Radius
 import cc.starrytea.horologium.ui.theme.Space
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Folder
+import compose.icons.tablericons.Tag
 import java.time.Duration
 
 @Composable
@@ -75,7 +82,7 @@ fun RunningCard(
     ) {
         Column(
             modifier = Modifier.padding(Space.s5),
-            verticalArrangement = Arrangement.spacedBy(Space.s5),
+            verticalArrangement = Arrangement.spacedBy(Space.s3),
         ) {
             if (record == null) {
                 Text(
@@ -102,7 +109,7 @@ private fun RunningHeader(record: Record) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                "Running",
+                "Currently Running",
                 style = Magnolia.type.caption,
                 color = Magnolia.colors.textSubtle,
             )
@@ -122,29 +129,36 @@ private fun RunningHeader(record: Record) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagsSection(record: Record) {
-    Section("Tags") {
-        if (record.tags.isEmpty()) {
-            EmptyLine("No tags")
-        } else {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Space.s2),
-                verticalArrangement = Arrangement.spacedBy(Space.s2),
-            ) {
-                record.tags.forEach { TagChip(it, size = ChipSize.Md) }
-            }
+    if (record.tags.isEmpty()) {
+        EmptyLine("No tags")
+    } else {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(Space.s2),
+            verticalArrangement = Arrangement.spacedBy(Space.s2),
+        ) {
+            AppIcon(
+                icon = TablerIcons.Tag,
+                modifier = Modifier.size(IconSize.md).align(Alignment.CenterVertically),
+                contentDescription = "Tags",
+            )
+            record.tags.forEach { TagChip(it, size = ChipSize.Md) }
         }
     }
 }
 
 @Composable
 private fun ProjectSection(project: Project?) {
-    Section("Project") {
-        if (project == null) {
-            EmptyLine("No project")
-        } else {
+    if (project == null) {
+        EmptyLine("No project")
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.s2)) {
+            AppIcon(
+                icon = TablerIcons.Folder,
+                modifier = Modifier.size(IconSize.md).align(Alignment.CenterVertically),
+                contentDescription = "Folder",
+            )
             Chip(color = project.color(Magnolia.colors.accent.full)) {
                 Text(project.name, maxLines = 1)
             }

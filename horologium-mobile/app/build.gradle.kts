@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.kotlinx.serialization.core)
+    implementation("br.com.devsrsouza.compose.icons:tabler-icons:1.1.1")
     debugImplementation(libs.androidx.ui.tooling)
 
     testImplementation(libs.junit)

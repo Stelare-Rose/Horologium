@@ -2,6 +2,8 @@ package cc.starrytea.horologium.data
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import cc.starrytea.horologium.model.Project
+import cc.starrytea.horologium.model.ProjectState
 import cc.starrytea.horologium.model.Record
 import cc.starrytea.horologium.model.RecordStatus
 import cc.starrytea.horologium.model.Tag
@@ -47,6 +49,7 @@ object Store {
                     Tag("tag_deepwork01", "deep work", listOf("#9bb0de")),
                     Tag("tag_thesis0001", "thesis", listOf("#cca3d6")),
                 ),
+            project = Project("proj_thesis0001", "Thesis", listOf("#cf8282"), ProjectState.Active),
         )
 
     suspend fun recordCount(): Int =

@@ -75,11 +75,3 @@ class MainActivity : ComponentActivity() {
         Store.init(this)
     }
 }
-
-@Composable
-fun HomeScreen() {
-    MagnoliaTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        }
-    }
-}

@@ -62,6 +62,7 @@ import cc.starrytea.horologium.ui.nav.topLevel
 import cc.starrytea.horologium.ui.theme.Magnolia
 import cc.starrytea.horologium.ui.theme.Radius
 import cc.starrytea.horologium.ui.theme.Space
+import cc.starrytea.horologium.ui.screen.HomeScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -154,7 +155,7 @@ fun AppShell() {
                     modifier = Modifier.padding(innerPadding),
                     entryProvider =
                         entryProvider {
-                            entry<HomeRoute> { Placeholder("Home") }
+                            entry<HomeRoute> { HomeScreen() }
                             entry<SummaryRoute> { Placeholder("Summary") }
                             entry<ProjectsRoute> { Placeholder("Projects") }
                             entry<TagsRoute> { Placeholder("Tags") }
@@ -186,7 +187,7 @@ fun RunningRow(
                 .fillMaxWidth()
                 .padding(horizontal = Space.s3)
                 .clip(Radius.shapeMd)
-                .background(if (record != null) Magnolia.colors.accent.t15 else Color.Transparent)
+                .background(if (record != null) Magnolia.colors.neutrals.foam else Color.Transparent)
                 .clickable(onClick = onClick)
                 .padding(horizontal = Space.s4, vertical = Space.s3),
         verticalAlignment = Alignment.CenterVertically,

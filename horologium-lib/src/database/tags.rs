@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use rusqlite::{Connection, params};
 
-use crate::types::Tag;
+use crate::{types::Tag, utils::hash_of};
 
 use super::Database;
 
@@ -20,13 +20,19 @@ pub fn upsert_tag(conn: &Connection, tag: Tag, path: &PathBuf, fp: u64) -> anyho
     const UPSERT_TAG: &str = include_str!("../../queries/tags/upsert.sql");
 
     let color_json = serde_json::to_string(&tag.color)?;
-    conn.execute(UPSERT_TAG, params![
-        tag.id,
-        tag.name,
-        color_json,
-        path.to_str(),
-        fp as i64
-    ]).with_context(|| format!("Database Tag Upsert | failed upsert of Tag {:?}", tag.name))?;
+    let hash = hash_of(&tag);
+    conn.execute(
+        UPSERT_TAG,
+        params![
+            tag.id,
+            tag.name,
+            color_json,
+            path.to_str(),
+            fp as i64,
+            hash.as_slice()
+        ],
+    )
+    .with_context(|| format!("Database Tag Upsert | failed upsert of Tag {:?}", tag.name))?;
 
     Ok(())
 }
@@ -39,3 +45,4 @@ pub fn remove_tag(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
 
     Ok(())
 }
+

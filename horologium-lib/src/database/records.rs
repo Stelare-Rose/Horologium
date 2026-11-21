@@ -1,9 +1,12 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
-use rusqlite::{Connection, params, types::Null, OptionalExtension};
+use rusqlite::{Connection, OptionalExtension, params, types::Null};
 
-use crate::types::{Event, Record};
+use crate::{
+    types::{Event, Record},
+    utils::hash_of,
+};
 
 use super::Database;
 
@@ -16,7 +19,12 @@ impl Database {
     }
 }
 
-pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64) -> anyhow::Result<()> {
+pub fn upsert_record(
+    conn: &Connection,
+    record: Record,
+    path: &PathBuf,
+    fp: u64,
+) -> anyhow::Result<()> {
     const UPDATE_NEXT: &str = include_str!("../../queries/records/upsert-next.sql");
     const UPDATE_PREV: &str = include_str!("../../queries/records/upsert-prev.sql");
     const UPSERT_RECORD: &str = include_str!("../../queries/records/upsert.sql");
@@ -26,47 +34,84 @@ pub fn upsert_record(conn: &Connection, record: Record, path: &PathBuf, fp: u64)
     // We always try to remove record here, see Issue #1
     remove_record(conn, path)?;
 
-    let record_id = record.id.0;
+    let record_id = &record.id.0;
     let start_epoch = record.start.timestamp_millis();
+    let hash = hash_of(&record);
 
     match record.event {
-        Event::Active { name, tags, project } => {
+        Event::Active {
+            name,
+            tags,
+            project,
+        } => {
             let project_id = project.map(|p| p.id);
-            conn.execute(UPSERT_RECORD, params![
-                record_id, 
-                name, 
-                "active", 
-                start_epoch, 
-                project_id, 
-                path.to_str(), 
-                fp as i64
-            ]).with_context(|| format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
+            conn.execute(
+                UPSERT_RECORD,
+                params![
+                    record_id,
+                    name,
+                    "active",
+                    start_epoch,
+                    project_id,
+                    path.to_str(),
+                    fp as i64,
+                    hash.as_slice()
+                ],
+            )
+            .with_context(|| {
+                format!(
+                    "Database Record Upsert | Failed Upsert of Record {:?}",
+                    name
+                )
+            })?;
             conn.execute(CLEAN_TAG, params![record_id])?;
             let mut stmt = conn.prepare(INSERT_RECORD_TAG)?;
             for (i, tag) in tags.iter().enumerate() {
                 stmt.execute(params![
                     tag.id,
                     record_id,
-                    i as i64
+                    i as i64,
                 ]).with_context(|| format!("Database Record Upsert | Failed Tag Upsert of Record {:?}, with tag {:?}", name, tag.name))?;
             }
         }
         Event::Inactive { name } => {
-            conn.execute(UPSERT_RECORD, params![
-                record_id,
-                name,
-                "inactive",
-                start_epoch,
-                Null,
-                path.to_str(),
-                fp as i64
-            ]).with_context(|| format!("Database Record Upsert | Failed Upsert of Record {:?}", name))?;
+            conn.execute(
+                UPSERT_RECORD,
+                params![
+                    record_id,
+                    name,
+                    "inactive",
+                    start_epoch,
+                    Null,
+                    path.to_str(),
+                    fp as i64,
+                    hash.as_slice()
+                ],
+            )
+            .with_context(|| {
+                format!(
+                    "Database Record Upsert | Failed Upsert of Record {:?}",
+                    name
+                )
+            })?;
         }
     };
 
     // Update adjacent records
-    conn.execute(UPDATE_PREV, params![start_epoch, record_id]).with_context(|| format!("Database Record Upsert | Failed Previous update of Record {:?}", record_id))?;
-    conn.execute(UPDATE_NEXT, params![start_epoch, record_id]).with_context(|| format!("Database Record Upsert | Failed Next update of Record {:?}", record_id))?;
+    conn.execute(UPDATE_PREV, params![start_epoch, record_id])
+        .with_context(|| {
+            format!(
+                "Database Record Upsert | Failed Previous update of Record {:?}",
+                record_id
+            )
+        })?;
+    conn.execute(UPDATE_NEXT, params![start_epoch, record_id])
+        .with_context(|| {
+            format!(
+                "Database Record Upsert | Failed Next update of Record {:?}",
+                record_id
+            )
+        })?;
     Ok(())
 }
 
@@ -76,15 +121,14 @@ pub fn remove_record(conn: &Connection, path: &PathBuf) -> anyhow::Result<()> {
     const DELETE_STITCH: &str = include_str!("../../queries/records/delete-stitch.sql");
     const DELETE_RECORD: &str = include_str!("../../queries/records/delete.sql");
 
-    let Some((id, start)): Option<(String, i64)> = conn.query_row(
-        GET_START_AND_ID,
-        params![path.to_str()],
-        |row| {
+    let Some((id, start)): Option<(String, i64)> = conn
+        .query_row(GET_START_AND_ID, params![path.to_str()], |row| {
             let id: String = row.get(0)?;
             let start: i64 = row.get(1)?;
             Ok((id, start))
-        },
-    ).optional()? else { 
+        })
+        .optional()?
+    else {
         return Ok(()); // this is a valid outcome.
     };
 

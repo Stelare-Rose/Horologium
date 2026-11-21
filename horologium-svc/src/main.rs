@@ -1,21 +1,24 @@
-use std::{collections::HashSet, path::PathBuf, time::{Duration, Instant}};
-use anyhow::{Context};
-use horologium_lib::{compile::{Compile}, database::{Database}};
+use anyhow::Context;
+use horologium_lib::{compile::Compile, database::Database};
 use notify::{EventKind, RecursiveMode, Watcher};
-use tokio::{ sync::mpsc, time::interval};
-use tracing::{info, error, debug};
+use std::{
+    collections::HashSet,
+    path::PathBuf,
+    time::{Duration, Instant},
+};
+use tokio::{sync::mpsc, time::interval};
+use tracing::{debug, error, info};
+
+use crate::utils::load_config;
+
+mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
-    let watch_root: PathBuf = dirs::data_dir()
-        .context("init | could not resolve data dir")?
-        .join("Horologium"); // adjust to your actual layout
-    let db_path: PathBuf = dirs::cache_dir()
-        .context("init | could not resolve cache dir")?
-        .join("Horologium")
-        .join("main.db");
-
+    let config = load_config()?;
+    let watch_root: PathBuf = config.base_path;
+    let db_path: PathBuf = config.db_path;
     let database: Database = Database::new(&db_path)?;
     let compile: Compile = Compile::new(watch_root.clone(), database)?;
     let (tx, mut rx) = mpsc::channel(256);
@@ -24,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
             let _ = tx.blocking_send(event);
         }
     })
-        .context("init | failed to construct watcher")?;
+    .context("init | failed to construct watcher")?;
     watcher
         .watch(&watch_root, RecursiveMode::Recursive)
         .with_context(|| format!("init | failed to watch {watch_root:?}"))?;
@@ -79,7 +82,6 @@ async fn main() -> anyhow::Result<()> {
         }
     }
     Ok(())
-
 }
 
 fn reconcile_all(db_path: &PathBuf, watch_path: &PathBuf) -> anyhow::Result<()> {

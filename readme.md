@@ -3,6 +3,13 @@ Horologium is a part of the Constellation Project, a set of personal application
 
 Horologium is heavily inspired by event-sourcing principles, preferring individual independent events and log reconstruction rather than exact intervals.
 
+> [!NOTE]
+>
+> | Horologium Lib [AI:R](http://0rwx.com) | AI:R I've used AI for Research |
+> | ----------------------- | ------------------------------------------------------------------------------------------------ |
+> | Horologium Cli, Svc, and Mobile [AI:W](http://0rwx.com) | Some code is written by AI |
+> | ----------------------- | ------------------------------------------------------------------------------------------------ |
+
 # Purpose
 Time trackers usually store discrete intervals. Horologium stores independent events (only the start time of each event, and distinct stop events marking "stop tracking"), and reconstructs the event log. This, combined with file-level sync tools (such as [Syncthing](https://syncthing.net/)), allow for a fully local-first time tracker.
 
@@ -69,3 +76,4 @@ The underlying file format is [Eridanus](https://git.starrytea.cc/Constellation-
 
 # License
 This project is under the MIT License - see LICENSE file
+

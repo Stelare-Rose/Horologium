@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS Tags (
 	name TEXT NOT NULL CHECK (name != ''),
 	color TEXT,
 	path TEXT,
-	fingerprint INTEGER
+	fingerprint INTEGER,
+  content_hash BLOB,
 );
 CREATE TABLE IF NOT EXISTS RecordsTags (
 	tag_id TEXT NOT NULL REFERENCES Tags(id),

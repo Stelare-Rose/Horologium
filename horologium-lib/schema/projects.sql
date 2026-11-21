@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS Projects (
 	completed_date TEXT,
 	path TEXT,
 	fingerprint INTEGER,
+  content_hash BLOB,
 	CHECK (
 		(state = 'done' AND completed_date IS NOT NULL) OR
 		(state = 'active' AND completed_date IS NULL)

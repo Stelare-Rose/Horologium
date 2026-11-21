@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS Records (
 	end INTEGER,
 	project TEXT REFERENCES Projects(id),
 	path TEXT,
-	fingerprint INTEGER
+	fingerprint INTEGER,
+  content_hash BLOB,
 );
 CREATE INDEX IF NOT EXISTS idx_records_start ON Records(start);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_records_path ON Records(path);

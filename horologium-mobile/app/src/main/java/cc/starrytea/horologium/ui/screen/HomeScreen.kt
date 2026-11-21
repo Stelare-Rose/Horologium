@@ -131,9 +131,7 @@ private fun RunningHeader(record: Record) {
 
 @Composable
 private fun TagsSection(record: Record) {
-    if (record.tags.isEmpty()) {
-        EmptyLine("No tags")
-    } else {
+    if (record.tags.isNotEmpty()) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(Space.s2),
             verticalArrangement = Arrangement.spacedBy(Space.s2),
@@ -150,9 +148,7 @@ private fun TagsSection(record: Record) {
 
 @Composable
 private fun ProjectSection(project: Project?) {
-    if (project == null) {
-        EmptyLine("No project")
-    } else {
+    if (project != null) {
         Row(horizontalArrangement = Arrangement.spacedBy(Space.s2)) {
             AppIcon(
                 icon = TablerIcons.Folder,

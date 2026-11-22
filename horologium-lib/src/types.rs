@@ -7,6 +7,7 @@ mod record;
 mod tags;
 
 // Do not @ me about bad encapsulation. fix it yourself
+#[derive(Serialize, Deserialize)]
 pub struct RecordId(pub String);
 #[derive(Serialize, Deserialize)]
 pub struct TagId {
@@ -18,12 +19,14 @@ pub struct ProjectId {
     pub id: String,
     pub name: String,
 }
+#[derive(Serialize, Deserialize)]
 pub struct Record {
     pub id: RecordId,
     pub start: DateTime<Utc>,
     pub event: Event,
     pub body: Option<String>,
 }
+#[derive(Serialize, Deserialize)]
 pub enum Event {
     Active {
         name: String,

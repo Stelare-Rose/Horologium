@@ -9,5 +9,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.104"
+chrono = "0.4.45"
 horologium-lib = { path = "../horologium-lib" }
 jni = "0.21"
+serde = "1.0.229"
+serde_json = "1.0.154"

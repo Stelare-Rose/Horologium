@@ -8,10 +8,12 @@ mod tags;
 
 // Do not @ me about bad encapsulation. fix it yourself
 pub struct RecordId(pub String);
+#[derive(Serialize, Deserialize)]
 pub struct TagId {
     pub id: String,
     pub name: String,
 }
+#[derive(Serialize, Deserialize)]
 pub struct ProjectId {
     pub id: String,
     pub name: String,

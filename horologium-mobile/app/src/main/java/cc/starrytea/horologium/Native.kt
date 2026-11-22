@@ -10,4 +10,9 @@ object Native {
         deviceId: String,
         name: String,
     ): String
+
+    external fun init(
+        basePath: String,
+        dbPath: String,
+    )
 }

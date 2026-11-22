@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import cc.starrytea.horologium.Native
 import cc.starrytea.horologium.data.RecordStore
 import cc.starrytea.horologium.data.Store
@@ -36,6 +37,7 @@ import cc.starrytea.horologium.ui.screen.PermissionScreen
 import cc.starrytea.horologium.ui.theme.*
 import cc.starrytea.horologium.wrapper.Horologium
 import cc.starrytea.horologium.wrapper.loadOrCreateDeviceId
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private var hasAccess by mutableStateOf(false)
@@ -71,7 +73,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun init() {
-        Horologium.init(this, loadOrCreateDeviceId(this))
-        Store.init(this)
+        lifecycleScope.launch {
+            Horologium.init(this@MainActivity, loadOrCreateDeviceId(this@MainActivity))
+            Store.init(this@MainActivity)
+        }
     }
 }

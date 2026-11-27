@@ -8,7 +8,7 @@ Horologium is heavily inspired by event-sourcing principles, preferring individu
 > | AI Use | Explanation |
 > | ----------------------- | ------------------------------------------------------------------------------------------------ |
 > | Horologium Lib [AI:R](http://0rwx.com) | I've used AI for Research |
-> | Horologium Cli, Svc, and Mobile [AI:W](http://0rwx.com) | Some code is written by AI |
+> | Horologium Cli, Svc, and Mobile [AI:W](http://0rwx.com)([Utility](https://astrolabe.starrytea.cc/blog/labeling-my-work/)) | Some code is written by AI |
 
 # Purpose
 Time trackers usually store discrete intervals. Horologium stores independent events (only the start time of each event, and distinct stop events marking "stop tracking"), and reconstructs the event log. This, combined with file-level sync tools (such as [Syncthing](https://syncthing.net/)), allow for a fully local-first time tracker.
